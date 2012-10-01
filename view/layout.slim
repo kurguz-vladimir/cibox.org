@@ -1,0 +1,52 @@
+doctype 5
+head
+  
+  == load_assets  'jquery.js', \
+                  'jquery.cookie.js', \
+                  :from => 'vendor/'
+  
+  == load_assets  'js/bootstrap.min.js', \
+                  'css/bootstrap.min.css', \
+                  'css/bootstrap-responsive.min.css', \
+                  :from => 'vendor/bootstrap/'
+
+  
+  == load_assets  'jquery.noty.js', \
+                  'layouts/top.js', \
+                  'layouts/topRight.js', \
+                  'themes/default.js', \
+                  :from => 'vendor/noty/'
+
+  == load_assets  'e-crudify-bootstrap.js', \
+                  'mime.js', \
+                  'master.js', \
+                  'master.css'
+body
+  #container
+    .container#body
+      .row
+        .span1
+        .span10
+          == yield
+        .span1
+    #push
+  
+  #footer
+    br/
+    .container
+      .row
+        .span
+          | Source Code:
+          a href="https://github.com/slivu/cibox.org"  https://github.com/slivu/cibox.org
+          br/
+          | Issues / Bugs:
+          a href="https://github.com/slivu/cibox.org/issues"  https://github.com/slivu/cibox.org/issues
+          br/
+          | Contribute:
+          a href="https://github.com/slivu/cibox.org/pulls"  https://github.com/slivu/cibox.org/pulls
+          br/
+          | IRC: #cibox channel on irc.freenode.net
+          
+        .span.pull-right
+          | Powered by
+          a href="https://github.com/slivu/espresso" &nbsp;Espresso

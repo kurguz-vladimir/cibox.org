@@ -1,0 +1,11 @@
+script src='on_xhr.js'
+p 
+  strong
+    - if new = params[:new]
+      | Create new folder in "#{{ @path }}"
+    - else
+      .fm-folder
+        = @path / @name / ''
+p
+  input type="hidden" name="current_name" value="#{ @name }"
+  input.preventer type="text" name="name" value="#{ @name unless new }"

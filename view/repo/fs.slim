@@ -1,0 +1,93 @@
+- owner = user? == @user
+- path  = params[:path]
+- path  = '.' if path.nil? || path.empty?
+- folders = path.split('/').reject { |d| d == '.' }
+- current_folder = folders.pop
+
+.breadcrumb
+  li.btn-group
+    a.btn href=Index.route(@user, @repo) = @repo
+    .btn.dropdown-toggle data-toggle="dropdown"
+      b.caret
+    ul.dropdown-menu
+      li
+        a.pointer onClick="cibox.download_repo('#{{Repo.route :download, @user, @repo, 'zip'}}');"
+          i.icon-download
+          | &nbsp;Download .zip
+      li
+        a.pointer onClick="cibox.download_repo('#{{Repo.route :download, @user, @repo, 'tar.gz'}}');"
+          i.icon-download
+          | &nbsp;Download .tar.gz
+      - if user? && !owner
+        li
+          a.pointer onClick="cibox.fork_repo('#{{Repo.route :fork, @repo, @user}}');"
+            i.icon-share
+            | &nbsp;Fork
+  span.divider &nbsp;/
+  
+  - if path
+    - url = []
+    - folders.each do |d|
+      - url << d
+      li
+        a href=Index.route(@user, @repo, :path => url.join('/'))
+          = d
+        span.divider &nbsp;/
+    li.active
+      = current_folder
+
+.pull-right style="margin-bottom: 2px;"
+  - if owner
+    .span.muted
+      | rsync -avz [path] #{user?}@#{Cfg.hostname}:"#{@repo / (folders.join('/') / current_folder).escape_spaces}"
+    .span
+      .btn-group
+        a.btn.btn-small onClick="repo_fs_crud_folder.create({repo: '#{ @repo }', path: '#{{ path }}', new: true});"
+          i.icon-folder-close
+          | &nbsp;New Folder
+        
+        a.btn.btn-small onClick="repo_fs_crud_file.create({repo: '#{ @repo }', path: '#{{ path }}'});"
+          i.icon-file
+          | &nbsp;New File
+
+- folders, files = (@repo_fs[path] || {}).values_at(:folders, :files)
+- columns, columns_max = 0, 4
+
+table.table
+  tr
+    - (folders || {}).each_pair do |p, d|
+      td
+        - if owner
+          .span
+            a onClick="repo_fs_crud_folder.update(true, {repo: '#{@repo}', path: '#{{ path }}', name: '#{{ d[:name] }}'});"
+              i.icon-edit
+            | &nbsp;
+        .span
+          a.fm-folder href=Index.route(@user, @repo, :path => p)
+            = d[:name]
+      - columns += 1
+      - if columns == columns_max
+        - columns = 0
+        | </tr><tr>
+
+    - (files || {}).each_pair do |p, f|
+      td
+        - if owner
+          .span
+            a.pointer onClick="repo_fs_crud_file.update(true, {repo: '#{@repo}', path: '#{{ path }}', file: '#{f[:name]}'});"
+              i.icon-edit
+            | &nbsp;
+        .span
+          a.pointer onClick="cibox.switch_lang({ext: '#{f[:lcext]}'}); cibox.invoke_file_runner('#{{ Shell.route :file }}', '#{f[:name]}', false);"
+            i.icon-play
+          | &nbsp;
+        .span
+          - if f[:is_text]
+            a.pointer.fm-file lcext=f[:lcext] onClick="cibox.invoke_file_reader('#{{ Repo::File.route :read }}', '#{f[:name]}');"
+              = f[:name]
+          - else
+            = f[:name]
+      - columns += 1
+      - if columns == columns_max
+        - columns = 0
+        | </tr><tr>

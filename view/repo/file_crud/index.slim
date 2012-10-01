@@ -1,0 +1,10 @@
+script src='on_xhr.js'
+p
+  strong
+    - if file = params[:file]
+      div class="fm-#{{ params[:lang] }}_file"
+        = @path / file
+    - else
+      | Create new file in "#{{ @path }}"
+p
+  input.preventer type="text" name="name" value="#{{ file }}"

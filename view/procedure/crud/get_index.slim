@@ -1,0 +1,15 @@
+script src='on_xhr.js'
+
+input type="hidden" name="user" value="#{{ user }}"
+| Name:
+p
+  input.preventer type="text" name="name" value="#{@item.name}"
+| Commands:
+p
+  textarea.w80pr.h100px name="commands"
+    = @item.commands
+p
+  label.radio.inline
+    input type="radio" name="private" value=1 checked=@item.private Private
+  label.radio.inline
+    input type="radio" name="private" value=0 checked=!@item.private Public

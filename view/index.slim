@@ -1,0 +1,319 @@
+- owner = user? && user? == @user
+- path  = params[:path]
+- path  = '.' if path.nil? || path.empty?
+
+
+pre#shell-output
+input.span10#shell-prompt type="text"
+#shell-prompt-close_button.pull-right.btn.btn-small
+  i.icon-remove.pointer#shell-prompt-close_button-icon onClick="cibox.reset_shell_output();"
+  
+
+input.hide id="effective-lang" value="#{Cfg.default_lang}"
+.tabbable.tabs-below
+  .tab-content
+    - @langs.each do |lang, versions|
+      - if versions.size > 0
+        div id="verselector-tab-#{lang}" class="tab-pane #{ 'active' if lang == Cfg.default_lang }"
+          label.checkbox.inline
+            input class="#{lang}-verselector" id="#{lang}-verselector-toggler" type="checkBox" onClick="$('.#{lang}-verselector').prop('checked',!!$('##{lang}-verselector-toggler').prop('checked')); $('#shell-prompt').focus();"
+            | All
+
+          - versions.each do |v|
+            - is_checked = v == Cfg.default_lang_version[lang]
+            label.checkbox.inline
+              // ugly hack until Slim fixes "checked" issue.
+              // as of Slim 1.3.1 `checked=some_false_expressioon` result in checked=""
+              // which is treated as true by browser
+              - if is_checked
+                input class="#{lang}-verselector" id="#{lang}-verselector-#{v}" type="checkBox" name="versions[]" value="#{v}" onClick="cibox.update_location.extend({versions: cibox.effective_lang_versions('+')}); $('#shell-prompt').focus();" checked=true
+              - else
+                input class="#{lang}-verselector" id="#{lang}-verselector-#{v}" type="checkBox" name="versions[]" value="#{v}" onClick="cibox.update_location.extend({versions: cibox.effective_lang_versions('+')}); $('#shell-prompt').focus();"
+              
+              = v
+      - else
+        div.tab-pane id="verselector-tab-#{lang}"
+          strong Coming Soon
+
+  ul.nav.nav-tabs#menu-tab
+    - @langs.each do |lang, versions|
+      li class="#{ 'active' if lang == Cfg.default_lang }"
+        a href="#verselector-tab-#{lang}" data-toggle="tab" onClick="$('#effective-lang').val('#{lang}'); cibox.update_location.extend({versions: cibox.effective_lang_versions('+')}); $('#shell-prompt').focus();" lang=lang
+          = lang.capitalize
+    li.dropdown
+      a.dropdown-toggle data-toggle="dropdown" href="#"
+        i.icon-list
+        | &nbsp;Repositories &nbsp;
+        b.caret
+      ul.dropdown-menu#repos role="menu"
+    li.dropdown
+      a.dropdown-toggle data-toggle="dropdown" href="#"
+        i.icon-list
+        | &nbsp;Procedures &nbsp;
+        b.caret
+      ul.dropdown-menu#procedures role="menu"
+    - if owner
+      li.dropdown
+        a.dropdown-toggle data-toggle="dropdown" href="#"
+          i.icon-user
+          | &nbsp;SSH Keys
+          b.caret
+        ul.dropdown-menu
+          li
+            a.pointer onClick="ssh_key_crudifier.create({user: '#{@user}', repo: '#{@repo}', path: '#{path}'});"
+              i.icon-circle-arrow-down
+              | &nbsp;authorized_keys
+          li
+            a.pointer  onClick="$('#ssh_pub_key-modal').modal();"
+              i.icon-circle-arrow-up
+              | &nbsp;id_rsa.pub
+      li.dropdown
+        a.pointer href=User.route(:logout)
+          i.icon-off
+          | &nbsp;Logout #{ @user }
+    - else
+      - if user?
+        li.dropdown
+          a.pointer href=Index.route(user?)
+            i.icon-user
+            | &nbsp;My Account
+      - else
+        li.dropdown
+          a.pointer href=User.route(:auth__github)
+            i.icon-user
+            | &nbsp;Login with GitHub
+
+    li.dropdown.pull-right style="width: 20%;"
+      #progress_bar.progress.progress-striped.active.hide style="margin-top: 5px; margin-bottom: 0;"
+        .bar style="width: 100%; "
+
+#ssh_pub_key-modal.modal.hide
+  .modal-body
+    | Add this key to your GitHub account to be able to push stuff from your CI Box
+    input type='text' value=@ssh_pub_key
+  .modal-footer
+    button.btn data-dismiss="modal" aria-hidden="true" Close
+
+#errors.hide
+
+#file_reader.hide
+  button type="button" class="close" onClick="$('#file_reader').hide(); cibox.update_location.remove(['file', 'run']);"
+    | &times;
+  .row style="margin-bottom: 5px;"
+    .span
+      .btn-group
+        - if owner
+          button.btn.btn-small onClick="cibox.save_file('#{{ Repo::File.route :save }}');"
+            i.icon-file
+            | &nbsp;Save
+          button.btn.btn-small#file_reader-save_and_run onClick="cibox.save_file('#{{ Repo::File.route :save }}', true);"
+            i.icon-forward
+            | &nbsp;Save and Run
+        button.hide.btn.btn-small#file_reader-coffee_compiler onClick="cibox.invoke_coffee_compiler('#{{ Shell.route :invoke }}');"
+          i.icon-cog
+          | &nbsp;Compile
+        button.btn.btn-small#file_reader-run onClick="cibox.invoke_file_runner('#{{ Shell.route :file }}');"
+          i.icon-play
+          | &nbsp;Run
+
+    .span
+      strong#file_reader-name
+  #file_reader-content
+
+hr/  
+#repo_fs
+  #repo_fs-fm
+  
+script
+  | $(function () {
+      mime  = new MIMEMap();
+      cibox = new CIBox('#{ @user }', '#{ @repo }', '#{{ path }}');
+      
+      var output = new EventSource('#{{ Index.route :subscribe }}/' + window.name);
+
+      output.addEventListener('shell_stream', function(e) {
+        if (e.origin != '#{base_url}'){
+          alert('Origin Mismatch');
+          return false;
+        }
+
+        $('#shell-output').append(cibox.sanitize_output(e.data) + "<br/>");
+        cibox.scroll_shell();
+      }, false);
+
+      output.addEventListener('crud_stream', function(e) {
+        if (e.origin != '#{base_url}'){
+          alert('Origin Mismatch');
+          return false;
+        }
+
+        try {
+          var data = JSON.parse(e.data);
+          
+          switch (data.resource) {
+
+          case 'repo':
+            cibox.update_repo_list('#{{ Repo.route :dropdown }}');
+            repos_crudifier.hide();
+            if (data.action == 'update' || data.action == 'create') {
+              window.location.href = '#{{ Index.route @user }}/' + data.params['name'];
+            } else if (data.action == 'delete') {
+              if (data.params['name'] == '#{ @repo }')
+                window.location.href = '#{{ Index.route @user }}';
+              if ('#{@repo}'.length == 0)
+                cibox.update_repo_fs('#{{ Repo.route :fs }}');
+            } else {
+              cibox.alert('Done');
+            }
+            break;
+
+          case 'file':
+            var queryString = getQueryString();
+            var file = queryString['file']||'';
+
+            if (data.action == 'delete') {
+              if ( file == data.params['name'] ) {
+                // TODO: find why browser is hanging 
+                // when updating location after file deletion
+                // cibox.update_location.remove(['file', 'run']);
+                $('#file_reader').hide();
+              }
+            } else {
+              if (file.length == 0 || (file.length > 0 && file == data.params['file'])) {
+                cibox.invoke_file_reader('#{{ Repo::File.route :read }}', data.params['name']);
+              }
+            }
+            cibox.update_repo_fs('#{{ Repo.route :fs }}');
+            repo_fs_crud_file.hide();
+          
+            break;
+          case 'folder':
+            cibox.update_repo_fs('#{{ Repo.route :fs }}');
+            repo_fs_crud_folder.hide();
+            break;
+          case 'ssh_key':
+            cibox.alert('SSH Key Successfully Updated');
+            ssh_key_crudifier.hide();
+            break;
+          }
+          
+        } catch (exc) {
+          cibox.error('unable to parse given JSON');
+        }
+      }, false);
+
+      output.addEventListener('rpc_stream', function(e) {
+        if (e.origin != '#{base_url}'){
+          alert('Origin Mismatch');
+          return false;
+        }
+
+        try {
+          var data = JSON.parse(e.data);
+          
+          switch (data.procedure) {
+            case 'progress_bar':
+              data.call == 'show' ? 
+                cibox.show_progress_bar():
+                cibox.hide_progress_bar();
+              break;
+            case 'update_repo_list':
+              cibox.update_repo_list('#{{ Repo.route :dropdown }}');
+              break;
+            case 'update_repo_fs':
+              cibox.update_repo_fs('#{{ Repo.route :fs }}');
+              break;
+            case 'download':
+              $('#download').prop('src', data.call);
+              break;
+            case 'run_file':
+              cibox.invoke_file_runner('#{{ Shell.route :file}}', data.call);
+              break;
+            case 'redirect':
+              window.location.href = data.call;
+              break;
+            case 'alert':
+              cibox.alert( cibox.sanitize_output(data.call) );
+              break;
+            case 'error':
+              cibox.error( cibox.sanitize_output(data.call) );
+              break;
+          }
+
+        } catch (exc) {
+          cibox.error('unable to parse given JSON');
+        } 
+      }, false);
+
+      var queryString = getQueryString();
+      if ( queryString['file'] ) {
+        cibox.invoke_file_reader('#{{ Repo::File.route :read }}', queryString['file'], false);
+        if ( queryString['run'] ) cibox.invoke_file_runner('#{{Shell.route :file}}', queryString['file']);
+      }
+      
+      ssh_key_crudifier = new ECrudifyBootstrap('#{{ Index.route :ssh_key }}');
+      ssh_key_crudifier.html('ssh_key_crudifier');
+
+      repos_crudifier = new ECrudifyBootstrap('#{{ Repo::CRUD.route }}');
+      repos_crudifier.html('repos_crudifier');
+
+      procedures_crudifier = new ECrudifyBootstrap('#{{ Procedure::CRUD.route }}', function(){
+        cibox.update_procedures_list('#{{ Procedure.route :dropdown }}');
+        procedures_crudifier.hide();
+        cibox.alert('Done');
+      });
+      procedures_crudifier.html('procedures_crudifier');
+
+      repo_fs_crud_folder=new ECrudifyBootstrap('#{{Repo::Folder::CRUD.route}}');
+      repo_fs_crud_folder.html('repo_fs_crud_folder');
+
+      repo_fs_crud_file=new ECrudifyBootstrap('#{{Repo::File::CRUD.route}}');
+      repo_fs_crud_file.html('repo_fs_crud_file');
+
+      $('#shell-prompt').focus().keypress( function (e) {
+        if(e.which == 13) {
+          cibox.invoke_shell('#{Shell.route :invoke}');
+        }
+      });
+
+      $('a[data-toggle="tab"]').on('shown', function (e) {
+         var effectiveLang = $(e.target).prop('lang');
+         localStorage['effectiveLang'] = effectiveLang;
+         cibox.update_location.extend({lang: effectiveLang});
+      });
+      var effectiveLang = queryString['lang'] || localStorage['effectiveLang'];
+      if (effectiveLang) {
+        cibox.switch_lang(effectiveLang);
+        
+        var opted_versions = ( _ = queryString['versions']||'' ).length > 0 ? _.split('+') : [];
+        if (opted_versions.length > 0) {
+          $('.' + effectiveLang + '-verselector').each( function() {
+            $(this).prop('checked', jQuery.inArray($(this).prop('value'), opted_versions) >= 0 );
+          });
+        }
+      }
+
+      // this should always go after versions was set
+      if ( queryString['procedure_id'] ) {
+        cibox.invoke_procedure('#{{Procedure.route :invoke}}', queryString['procedure_id'], false);
+      }
+      
+    });
+
+- if @user
+  script
+    | $(function(){
+        cibox.update_procedures_list('#{{ Procedure.route :dropdown }}');
+        cibox.update_repo_list('#{{ Repo.route :dropdown }}');
+        cibox.update_repo_fs('#{{ Repo.route :fs }}');
+      });
+
+- if @process_login_request
+  script
+    | $(function(){
+        cibox.login('#{{ @process_login_request }}');
+      });
+
+iframe#download.hide src='about:blank'
+script src='/vendor/ace-builds/src-min-noconflict/ace.js'
+
