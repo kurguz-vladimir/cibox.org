@@ -1,4 +1,4 @@
-# Welcome to CI Box!
+# Welcome to <a href="http://cibox.org">CI Box!</a>
 ## a Code Sharing and Continuous Integration Service
 
 # Code Sharing?
@@ -9,7 +9,6 @@ click Run and see the result straight away.
 CI Box offers same nifty approach 
 for server-side languages/frameworks,
 Ruby, Python, Node.js (others to come soon).
-
 
 # Continuous Integration?
 Create / Edit / Test / Build
