@@ -4,7 +4,7 @@
 
 
 pre#shell-output
-input.span10#shell-prompt type="text" placeholder="Terminal emulator. Run a command like ruby, gem, node, npm, python, pip etc. To run some code, put it in a file."
+input.span10#shell-prompt type="text" placeholder="Terminal emulator to run commands like ruby, gem, node, npm, python, pip etc. To run some code, put it in a file."
 #shell-prompt-close_button.pull-right.btn.btn-small
   i.icon-remove.pointer#shell-prompt-close_button-icon onClick="cibox.reset_shell_output();"
   
@@ -106,10 +106,10 @@ input.hide id="effective-lang" value="#{Cfg.default_lang}"
           button.btn.btn-small onClick="cibox.save_file('#{{ Repo::File.route :save }}');"
             i.icon-file
             | &nbsp;Save
-          button.btn.btn-small#file_reader-save_and_run onClick="cibox.save_file('#{{ Repo::File.route :save }}', true);"
+          button.btn.btn-small#file_reader-save_and_run onClick="cibox.save_file('#{{ Repo::File.route :save }}', 'run');"
             i.icon-forward
             | &nbsp;Save and Run
-        button.hide.btn.btn-small#file_reader-coffee_compiler onClick="cibox.invoke_coffee_compiler('#{{ Shell.route :invoke }}');"
+        button.hide.btn.btn-small#file_reader-compile onClick="cibox.save_file('#{{ Repo::File.route :save }}', 'compile');"
           i.icon-cog
           | &nbsp;Compile
         button.btn.btn-small#file_reader-run onClick="cibox.invoke_file_runner('#{{ Shell.route :file }}');"

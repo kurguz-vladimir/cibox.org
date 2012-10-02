@@ -17,12 +17,7 @@ class Shell < E
 
   def post_file
     stream do
-      user, repo, lang, versions, path, file =
-        params.values_at(:user, :repo, :lang, :versions, :path, :file)
-      cmd = '%s "%s"' % [lang, file]
-      (versions||'default').split.each do |version|
-        rt_spawn lang, version, user, repo, path, cmd
-      end
+      run_file
     end
   end
 end

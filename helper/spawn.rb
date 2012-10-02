@@ -94,6 +94,15 @@ module SpawnHelper
     'ssh pub_key'
   end
 
+  def run_file cmd = nil
+    user, repo, lang, versions, path, file =
+      params.values_at(:user, :repo, :lang, :versions, :path, :file)
+    cmd ||= '%s "%s"' % [lang, file]
+    (versions||'default').split.each do |version|
+      rt_spawn lang, version, user, repo, path, cmd
+    end
+  end
+
 
   def crud_spawn cmd = nil, opts = {}, &proc
     halt 401 unless user?
@@ -199,10 +208,19 @@ module SpawnHelper
       ErrorModel.create user: user, cmd: real_cmd, error: error
     else
       e, a = cmd.strip.split(/\s+/)
-      if (%w[git npm].include?(e) &&
-          %w[clone pull install uninstall].include?(a)) ||
-        (e == 'coffee' && a =~ /\-c/)
-      
+      case e
+      when 'git'
+        update = %w[clone pull].include?(a)
+      when 'npm'
+        update = %w[install uninstall].include?(a)
+      when 'coffee'
+        update = a =~ /\-c/
+      when 'tsc'
+        update = true
+      else
+        update = false
+      end
+      if update
         clear_cache_like! [user]
         rpc_stream :update_repo_list
         rpc_stream :update_repo_fs

@@ -1,6 +1,5 @@
 source :rubygems
 
-gem 'rake'
 gem 'thin'
 gem 'slim' # ever put slim before espresso
 gem 'e'
