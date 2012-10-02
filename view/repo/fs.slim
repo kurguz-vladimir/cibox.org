@@ -5,6 +5,8 @@
 - current_folder = folders.pop
 
 .breadcrumb
+  a href=Index.route(@user) root
+  span.divider &nbsp;/
   li.btn-group
     a.btn href=Index.route(@user, @repo) = @repo
     .btn.dropdown-toggle data-toggle="dropdown"

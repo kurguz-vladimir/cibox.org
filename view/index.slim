@@ -5,8 +5,8 @@
 
 pre#shell-output
 input.span10#shell-prompt type="text" placeholder="Terminal emulator to run commands like ruby, gem, node, npm, python, pip etc. To run some code, put it in a file."
-#shell-prompt-close_button.pull-right.btn.btn-small
-  i.icon-remove.pointer#shell-prompt-close_button-icon onClick="cibox.reset_shell_output();"
+#shell-prompt-close_button.pull-right.btn.btn-small onClick="cibox.reset_shell_output();"
+  i.icon-remove.pointer#shell-prompt-close_button-icon
   
 
 input.hide id="effective-lang" value="#{Cfg.default_lang}"
