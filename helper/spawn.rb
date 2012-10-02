@@ -39,15 +39,15 @@ module SpawnHelper
   end
 
   def delete_repo_cmd repo
-    'repos delete %s' % repo.escape_spaces
+    'repos delete %s' % repo
   end
 
   def rename_repo_cmd repo, name
-    'repos rename %s %s' % [repo.escape_spaces, name.to_url]
+    'repos rename %s %s' % [repo, name]
   end
 
   def create_repo_cmd name
-    'repos create %s' % name.to_url
+    'repos create %s' % name
   end
 
   def list_repos_cmd
@@ -96,6 +96,8 @@ module SpawnHelper
 
 
   def crud_spawn cmd = nil, opts = {}, &proc
+    halt 401 unless user?
+
     opts = cmd if cmd.is_a?(Hash)
     stream do
       rpc_stream :progress_bar, :show
@@ -103,8 +105,12 @@ module SpawnHelper
       if e
         rpc_stream :error, e
       else
+        clear_cache! [user, :repo_list]
+        clear_cache! [user, :repo_fs, params[:repo]]
+
         data = opts.merge(stdout: o, params: params)
         crud_stream data
+        rpc_stream :alert, 'Done'
       end
       rpc_stream :progress_bar, :hide
     end

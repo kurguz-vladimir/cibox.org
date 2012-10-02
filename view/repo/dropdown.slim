@@ -1,6 +1,6 @@
 - if user? == @user
   li
-    a onClick="repos_crudifier.create({user: '#{ @user }', repo: '#{@repo}', path: '#{{ @path }}'});"
+    a onClick="repos_crudifier.create({user: '#{@user}'});"
       i.icon-plus
       | &nbsp; Add New Repo
   li.divider

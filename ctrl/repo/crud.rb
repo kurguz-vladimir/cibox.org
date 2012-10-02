@@ -8,16 +8,20 @@ class Repo
     end
 
     def post_index
+      params[:name] = (params[:name]||'').to_url
       crud_spawn create_repo_cmd(params[:name]),
         resource: :repo, action: :create
     end
 
     def put_index placeholder
+      params[:name] = (params[:name]||'').to_url
+      params[:repo] = (params[:repo]||'').escape_spaces
       crud_spawn rename_repo_cmd(params[:repo], params[:name]),
         resource: :repo, action: :update
     end
 
     def delete_index placeholder
+      params[:repo] = (params[:repo]||'').escape_spaces
       crud_spawn delete_repo_cmd(params[:repo]),
         resource: :repo, action: :delete
     end

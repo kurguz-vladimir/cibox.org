@@ -4,7 +4,7 @@
 
 
 pre#shell-output
-input.span10#shell-prompt type="text"
+input.span10#shell-prompt type="text" placeholder="Terminal emulator. Run a command like ruby, gem, node, npm, python, pip etc. To run some code, put it in a file."
 #shell-prompt-close_button.pull-right.btn.btn-small
   i.icon-remove.pointer#shell-prompt-close_button-icon onClick="cibox.reset_shell_output();"
   
@@ -120,7 +120,22 @@ input.hide id="effective-lang" value="#{Cfg.default_lang}"
       strong#file_reader-name
   #file_reader-content
 
-hr/  
+- if @repo == '.'
+  h4
+    | First things first
+  h5.well
+    | Click <b>Repositories</b> on menu above and create a brand new repo where you'll can create and run files.
+  h5.well
+    | If you do not want to create files manually, you can clone a GitHub repository.
+    br/
+    | Just type `git clone git://your.repo` in the terminal above.
+  h5.well
+    | If that's not the way either, use `rsync` to upload your files.
+    br/
+    | Click SSH > authorized_keys in the menu above and add your public SSH key.
+    br/
+    | Then create a repository and use the generated `rsync` command.
+hr/
 #repo_fs
   #repo_fs-fm
   
@@ -162,8 +177,6 @@ script
                 window.location.href = '#{{ Index.route @user }}';
               if ('#{@repo}'.length == 0)
                 cibox.update_repo_fs('#{{ Repo.route :fs }}');
-            } else {
-              cibox.alert('Done');
             }
             break;
 
@@ -284,7 +297,7 @@ script
       var effectiveLang = queryString['lang'] || localStorage['effectiveLang'];
       if (effectiveLang) {
         cibox.switch_lang(effectiveLang);
-        
+
         var opted_versions = ( _ = queryString['versions']||'' ).length > 0 ? _.split('+') : [];
         if (opted_versions.length > 0) {
           $('.' + effectiveLang + '-verselector').each( function() {

@@ -50,18 +50,6 @@ App.setup_controllers do |ctrl|
   include SpawnHelper
   include OutputHelper
 
-  if ctrl.name =~ /CRUD/
-    before { halt 401 unless user }
-  
-    setup /post/, /put/, /delete/ do
-      after do
-        clear_cache! [user, :repo_list]
-        clear_cache! [user, :repo_fs, params[:repo]]
-        rpc_stream :alert, 'Done'
-      end
-    end
-  end
-
   if [Index, User].include?(ctrl)
     setup :index, /github/ do
       before do
