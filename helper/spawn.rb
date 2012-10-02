@@ -94,15 +94,25 @@ module SpawnHelper
     'ssh pub_key'
   end
 
-  def run_file cmd = nil
+  def invoke_file action = 'run'
     user, repo, lang, versions, path, file =
       params.values_at(:user, :repo, :lang, :versions, :path, :file)
-    cmd ||= '%s "%s"' % [lang, file]
+    
+    run, compile = '%s "%s"' % [lang, file], nil
+    ext = ::File.extname(file)
+    is_coffee = ext == '.coffee'
+    is_typescript = ext == '.ts'
+    if action == 'compile' || is_coffee || is_typescript
+      if is_coffee
+        compile = 'coffee -c "%s"' % file
+      elsif is_typescript
+        compile = 'tsc "%s"' % file
+      end
+    end
     (versions||'default').split.each do |version|
-      rt_spawn lang, version, user, repo, path, cmd
+      rt_spawn lang, version, user, repo, path, compile||run
     end
   end
-
 
   def crud_spawn cmd = nil, opts = {}, &proc
     halt 401 unless user?
@@ -192,9 +202,7 @@ module SpawnHelper
           buffer = [cmd]
           r.each { |l| shell_stream(l); buffer << l }
           _, status = Process.wait2 pid
-          unless status && status.exitstatus == 0
-            rpc_stream :error, buffer.join("\n")
-          end
+          error = buffer.join("\n") unless status && status.exitstatus == 0
         end
       end
     rescue Timeout::Error
@@ -207,25 +215,32 @@ module SpawnHelper
       rpc_stream :error, error
       ErrorModel.create user: user, cmd: real_cmd, error: error
     else
+      update, alert = false, nil
+      something_compiled = nil
       e, a = cmd.strip.split(/\s+/)
       case e
       when 'git'
-        update = %w[clone pull].include?(a)
+        is_cloned = a == 'clone'
+        is_pulled = a == 'pull' unless is_cloned
+        update = is_cloned || is_pulled
+        alert = 'Repo Successfully Cloned' if is_cloned
+        alert = 'Repo Successfully Pulled' if is_pulled
       when 'npm'
         update = %w[install uninstall].include?(a)
       when 'coffee'
         update = a =~ /\-c/
+        something_compiled = true
       when 'tsc'
         update = true
-      else
-        update = false
+        something_compiled = true
       end
       if update
         clear_cache_like! [user]
         rpc_stream :update_repo_list
         rpc_stream :update_repo_fs
-        rpc_stream :alert, 'Done'
       end
+      alert = 'File Successfully Compiled' if something_compiled
+      rpc_stream :alert, alert if alert
     end
     rpc_stream :progress_bar, :hide
   end

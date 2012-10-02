@@ -38,7 +38,7 @@ input.hide id="effective-lang" value="#{Cfg.default_lang}"
   ul.nav.nav-tabs#menu-tab
     - @langs.each do |lang, versions|
       li class="#{ 'active' if lang == Cfg.default_lang }"
-        a href="#verselector-tab-#{lang}" data-toggle="tab" onClick="$('#effective-lang').val('#{lang}'); cibox.update_location.extend({versions: cibox.effective_lang_versions('+')}); $('#shell-prompt').focus();" lang=lang
+        a href="#verselector-tab-#{lang}" data-toggle="tab" onClick="cibox.switch_lang('#{lang}', cibox.effective_file_ext()); cibox.update_location.extend({versions: cibox.effective_lang_versions('+')}); $('#shell-prompt').focus();" lang=lang
           = lang.capitalize
     li.dropdown
       a.dropdown-toggle data-toggle="dropdown" href="#"
@@ -106,13 +106,13 @@ input.hide id="effective-lang" value="#{Cfg.default_lang}"
           button.btn.btn-small onClick="cibox.save_file('#{{ Repo::File.route :save }}');"
             i.icon-file
             | &nbsp;Save
-          button.btn.btn-small#file_reader-save_and_run onClick="cibox.save_file('#{{ Repo::File.route :save }}', 'run');"
+          button.btn.btn-small.file_reader-run onClick="cibox.save_file('#{{ Repo::File.route :save }}', 'run');"
             i.icon-forward
             | &nbsp;Save and Run
-        button.hide.btn.btn-small#file_reader-compile onClick="cibox.save_file('#{{ Repo::File.route :save }}', 'compile');"
+        button.hide.btn.btn-small.file_reader-compile onClick="cibox.save_file('#{{ Repo::File.route :save }}', 'compile');"
           i.icon-cog
           | &nbsp;Compile
-        button.btn.btn-small#file_reader-run onClick="cibox.invoke_file_runner('#{{ Shell.route :file }}');"
+        button.btn.btn-small.file_reader-run onClick="cibox.invoke_file_runner('#{{ Shell.route :file }}');"
           i.icon-play
           | &nbsp;Run
 
@@ -141,7 +141,6 @@ hr/
   
 script
   | $(function () {
-      mime  = new MIMEMap();
       cibox = new CIBox('#{ @user }', '#{ @repo }', '#{{ path }}');
       
       var output = new EventSource('#{{ Index.route :subscribe }}/' + window.name);

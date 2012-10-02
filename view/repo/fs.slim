@@ -80,7 +80,7 @@ table.table
               i.icon-edit
             | &nbsp;
         .span
-          a.pointer onClick="cibox.switch_lang({ext: '#{f[:lcext]}'}); cibox.invoke_file_runner('#{{ Shell.route :file }}', '#{f[:name]}', false);"
+          a.pointer onClick="cibox.invoke_file_runner('#{{ Shell.route :file }}', '#{f[:name]}', false);"
             i.icon-play
           | &nbsp;
         .span

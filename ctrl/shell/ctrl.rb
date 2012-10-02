@@ -17,7 +17,7 @@ class Shell < E
 
   def post_file
     stream do
-      run_file
+      invoke_file
     end
   end
 end

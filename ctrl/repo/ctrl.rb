@@ -84,17 +84,8 @@ class Repo < E
         if e 
           rpc_stream :error, e
         else
-          case params[:after_save]
-          when 'run'
-            run_file
-          when 'compile'
-            file = params[:file]
-            case ::File.extname(file)
-            when '.coffee'
-              run_file 'coffee -c "%s"' % file
-            when '.ts'
-              run_file 'tsc "%s"' % file
-            end
+          if action = params[:after_save]
+            invoke_file action
           end
           rpc_stream :alert, 'File Successfully Updated'
         end
