@@ -64,9 +64,8 @@ class Repo
       end
 
       def post_index
-        crud_spawn resource: :file, action: :create do
-          upload_file_cmd *params.values_at(:name, :content, :repo, :path)
-        end
+        crud_spawn create_file_cmd(*params.values_at(:name, :repo, :path)),
+          resource: :file, action: :create
       end
 
       def put_index placeholder

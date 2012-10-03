@@ -2,6 +2,10 @@ module SpawnHelper
 
   private
 
+  def create_file_cmd name, repo = '.', path = '.'
+    'repos create_file %s %s %s' % [repo, path, name].map { |c| c.to_s.escape_spaces }
+  end
+
   def upload_file_cmd name, content = "\n", repo = '.', path = '.'
     # making sure ssh will not wait for data forever
     content = "\n" if content.nil? || content.empty?
