@@ -195,28 +195,32 @@ module SpawnHelper
 
     timeout, error = Cfg.timeout[:interactive_shell], nil
     
+    buffer = [cmd]
     begin
       Timeout.timeout timeout do
         PTY.spawn real_cmd do |r, w, pid|
-          r.sync
-          buffer = [cmd]
-          r.each { |l| shell_stream(l); buffer << l }
-          _, status = Process.wait2 pid
-          error = buffer.join("\n") unless status && status.exitstatus == 0
+          begin
+            r.sync
+            r.each { |l| shell_stream(l); buffer << l }
+          rescue Errno::EIO => e
+            # simply ignoring this
+          ensure
+            ::Process.wait pid
+          end
         end
       end
     rescue Timeout::Error
       spawn "kill %s" % timeout, user: user
       error = 'Max execution time of %s seconds exceeded' % timeout
-    rescue Errno::EIO => e
-      # simply ignoring this
     end
+    error = buffer.join("\n") unless $? && $?.exitstatus == 0
+
     if error
       rpc_stream :error, error
       ErrorModel.create user: user, cmd: real_cmd, error: error
     else
       update, alert = false, nil
-      something_compiled = nil
+      something_installed, something_uninstalled, something_compiled = nil
       e, a = cmd.strip.split(/\s+/)
       case e
       when 'git'
@@ -225,8 +229,16 @@ module SpawnHelper
         update = is_cloned || is_pulled
         alert = 'Repo Successfully Cloned' if is_cloned
         alert = 'Repo Successfully Pulled' if is_pulled
+      when 'gem'
+        something_uninstalled = a =~ /uni/
+        something_installed   = a =~ /in/ unless something_uninstalled
       when 'npm'
-        update = %w[install uninstall].include?(a)
+        something_installed   = a == 'install'
+        something_uninstalled = a == 'uninstall' unless something_installed
+        update = something_installed || something_uninstalled
+      when 'pip'
+        something_installed   = a == 'install'
+        something_uninstalled = a == 'uninstall' unless something_installed
       when 'coffee'
         update = a =~ /\-c/
         something_compiled = true
@@ -239,7 +251,9 @@ module SpawnHelper
         rpc_stream :update_repo_list
         rpc_stream :update_repo_fs
       end
-      alert = 'File Successfully Compiled' if something_compiled
+      alert = 'Package(s) Successfully Installed'   if something_installed
+      alert = 'Package(s) Successfully unInstalled' if something_uninstalled
+      alert = 'File Successfully Compiled'          if something_compiled
       rpc_stream :alert, alert if alert
     end
     rpc_stream :progress_bar, :hide
@@ -257,18 +271,19 @@ module SpawnHelper
       Timeout.timeout timeout do
         # using PTY cause sudo requires a tty to run
         PTY.spawn cmd do |r, w, pid|
-          output = r.read
-          # close FIFOs before start waiting,
-          # otherwise it will wait forever on non-zero exit statuses
-          r.close; w.close
-          _, s = Process.wait2 pid
-          error = output unless s.exitstatus == 0
+          begin
+            output = r.read
+            r.close; w.close
+          rescue Errno::EIO => e
+            # simply ignoring this
+          ensure
+            ::Process.wait pid
+          end
+          error = output unless $? && $?.exitstatus == 0
         end
       end
     rescue Timeout::Error
       error = 'Max execution time exceeded' % timeout
-    rescue Errno::EIO => e
-      # simply ignoring this
     end
     [output, error]
   end
