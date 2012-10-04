@@ -1,22 +1,21 @@
 - if user? == @user
   li
-    a onClick="repos_crudifier.create({user: '#{@user}'});"
+    a href="#" onClick="repos_crudifier.create({user: '#{@user}'});"
       i.icon-plus
       | &nbsp; Add New Repo
   li.divider
 
 - @repos.each do |repo|
   li class="#{ 'active' if repo == @repo }"
-    a
-      table
-        tr
-          - if user? == @user
-            td
-              a.pointer onClick="repos_crudifier.update(true, {user: '#{@user}', repo: '#{repo}'});"
-                i.icon-edit
+    table
+      tr
+        - if user? == @user
           td
-            a href=Index.route(@user, repo)
-              i.icon-play
-              | &nbsp;
-              = repo
+            a href="#" onClick="repos_crudifier.update(true, {user: '#{@user}', repo: '#{repo}'});"
+              i.icon-edit
+        td
+          a href=Index.route(@user, repo)
+            i.icon-play
+            | &nbsp;
+            = repo
           

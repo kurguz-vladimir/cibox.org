@@ -13,16 +13,16 @@
       b.caret
     ul.dropdown-menu
       li
-        a.pointer onClick="cibox.download_repo('#{{Repo.route :download, @user, @repo, 'zip'}}');"
+        a href="#" onClick="cibox.download_repo('#{{Repo.route :download, @user, @repo, 'zip'}}');"
           i.icon-download
           | &nbsp;Download .zip
       li
-        a.pointer onClick="cibox.download_repo('#{{Repo.route :download, @user, @repo, 'tar.gz'}}');"
+        a href="#" onClick="cibox.download_repo('#{{Repo.route :download, @user, @repo, 'tar.gz'}}');"
           i.icon-download
           | &nbsp;Download .tar.gz
       - if user? && !owner
         li
-          a.pointer onClick="cibox.fork_repo('#{{Repo.route :fork, @repo, @user}}');"
+          a href="#" onClick="cibox.fork_repo('#{{Repo.route :fork, @repo, @user}}');"
             i.icon-share
             | &nbsp;Fork
   span.divider &nbsp;/
@@ -76,16 +76,16 @@ table.table
       td
         - if owner
           .span
-            a.pointer onClick="repo_fs_crud_file.update(true, {repo: '#{@repo}', path: '#{{ path }}', file: '#{f[:name]}'});"
+            a href="#" onClick="repo_fs_crud_file.update(true, {repo: '#{@repo}', path: '#{{ path }}', file: '#{f[:name]}'});"
               i.icon-edit
             | &nbsp;
         .span
-          a.pointer onClick="cibox.invoke_file_runner('#{{ Shell.route :file }}', '#{f[:name]}', false);"
+          a href="#" onClick="cibox.invoke_file_runner('#{{ Shell.route :file }}', '#{f[:name]}', false);"
             i.icon-play
           | &nbsp;
         .span
           - if f[:is_text]
-            a.pointer.fm-file lcext=f[:lcext] onClick="cibox.invoke_file_reader('#{{ Repo::File.route :read }}', '#{f[:name]}');"
+            a.fm-file href="#" lcext=f[:lcext] onClick="cibox.invoke_file_reader('#{{ Repo::File.route :read }}', '#{f[:name]}');"
               = f[:name]
           - else
             = f[:name]

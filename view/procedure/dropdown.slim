@@ -1,7 +1,7 @@
 - owner = user? == @user
 - if owner
   li
-    a.pointer onClick="procedures_crudifier.create();"
+    a href="#" onClick="procedures_crudifier.create();"
       i.icon-plus
       | &nbsp; Add New Procedure
   li.divider
@@ -9,17 +9,16 @@
 - @procedures.each do |p|
   - if owner || p.public?
     li
-      a
-        table
-          tr
-            - if owner
-              td
-                a.pointer onClick="procedures_crudifier.update('#{p.id}');"
-                  i.icon-edit
-            - if p.public? || owner
-              td
-                a.pointer onClick="cibox.invoke_procedure('#{{ Procedure.route :invoke }}', '#{p.id}');"
-                  i.icon-play
-                  | &nbsp;
-                  = p.name
+      table
+        tr
+          - if owner
+            td
+              a href="#" onClick="procedures_crudifier.update('#{p.id}');"
+                i.icon-edit
+          - if p.public? || owner
+            td
+              a href="#" onClick="cibox.invoke_procedure('#{{ Procedure.route :invoke }}', '#{p.id}');"
+                i.icon-play
+                | &nbsp;
+                = p.name
             

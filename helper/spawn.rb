@@ -228,10 +228,13 @@ module SpawnHelper
       e, a = cmd.strip.split(/\s+/)
       case e
       when 'git'
-        is_cloned = a == 'clone'
-        is_pulled = a == 'pull' unless is_cloned
-        update = is_cloned || is_pulled
-        alert = 'Repo Successfully Cloned' if is_cloned
+        is_updated = %w[
+          add checkout clone fetch init 
+          merge mv pull rebase reset rm tag
+        ].include?(a)
+        is_pulled = a == 'pull' unless is_updated
+        update = is_updated || is_pulled
+        alert = 'Repo Operations Successfully Completed' if is_updated
         alert = 'Repo Successfully Pulled' if is_pulled
       when 'gem'
         something_uninstalled = a =~ /uni/

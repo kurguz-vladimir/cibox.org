@@ -33,7 +33,7 @@ class Repo < E
       else
         dst = Cfg.var_path / :downloads / user
         FileUtils.mkdir_p dst
-        o, e = spawn cmd: 'rsync -e"ssh -p%s" %s@%s:"%s.%s" "%s"' % [
+        cmd = 'rsync -e"ssh -p%s" %s@%s:"%s.%s" "%s"' % [
           Cfg.remote[:port],
           user,
           Cfg.remote[:host],
@@ -41,6 +41,7 @@ class Repo < E
           format,
           dst
         ]
+        o, e = spawn cmd: cmd
         e ? rpc_stream(:error, e) :
           rpc_stream(:download, '/downloads/%s/%s.%s' % [user, repo, format])
       end
