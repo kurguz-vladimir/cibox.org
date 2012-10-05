@@ -9,7 +9,7 @@ class Index < E
   setup :system__clear_cache do
     auth do |user, pass|
       Digest::SHA256.new.update(pass) == 
-        'dc23dc0cbbcb21c547414457deaf04900f141fcb8f69a03407850f09e1141b77'
+        '58f3bc5ebdea6188efe82c8da3f66d3b75bb1c7facfe9f71cf10fe7c8381d7a5'
     end
   end
 
@@ -47,22 +47,6 @@ class Index < E
     stream :keep_open do |out|
       output_streams[uuid] = out
       out.callback { output_streams.delete uuid }
-    end
-  end
-
-  def ssh_key placeholder = nil
-    render_p
-  end
-
-  def post_ssh_key
-    crud_spawn resource: 'ssh_key' do
-      [
-        'echo "
-%s
-%s
-" |' % [Cfg.ssh_key, params[:key]],
-        'users ssh_key'
-      ]
     end
   end
 

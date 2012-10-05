@@ -89,12 +89,13 @@ input.hide id="effective-lang" value="#{Cfg.default_lang}"
 
 #ssh_pub_key-modal.modal.hide
   .modal-body
-    | Add this key to your GitHub account to be able to push stuff from your CI Box
-    input type='text' value=@ssh_pub_key
+    p
+      | Add this key to your GitHub account to be able to push stuff from your CI Box
+    input.span5 type='text' value=@ssh_pub_key
   .modal-footer
     button.btn data-dismiss="modal" aria-hidden="true" Close
 
-#errors.hide
+.errors-container.hide
 
 #file_reader.hide
   .row
@@ -205,7 +206,14 @@ script
             repo_fs_crud_folder.hide();
             break;
           case 'ssh_key':
-            cibox.alert('SSH Key Successfully Updated');
+            switch (data.action) {
+            case 'add':
+              cibox.alert('Successfully added new SSH key');
+              break;
+            case 'remove':
+              cibox.alert('SSH key successfully removed');
+              break;
+            }
             ssh_key_crudifier.hide();
             break;
           }
@@ -263,7 +271,7 @@ script
         cibox.invoke_file_reader('#{{ Repo::File.route :read }}', queryString['file'], false);
       }
       
-      ssh_key_crudifier = new ECrudifyBootstrap('#{{ Index.route :ssh_key }}');
+      ssh_key_crudifier = new ECrudifyBootstrap('#{{ User.route :ssh_key }}');
       ssh_key_crudifier.html('ssh_key_crudifier');
 
       repos_crudifier = new ECrudifyBootstrap('#{{ Repo::CRUD.route }}');

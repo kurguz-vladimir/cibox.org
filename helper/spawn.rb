@@ -98,6 +98,14 @@ module SpawnHelper
     'ssh pub_key'
   end
 
+  def ssh_add_key_cmd key, name
+    'ssh add_key %s %s' % [key, name].map{ |v| v.to_s.escape_spaces }
+  end
+
+  def ssh_remove_key_cmd name
+    'ssh remove_key %s' % name.to_s.escape_spaces
+  end
+
   def invoke_file action = 'run'
     user, repo, lang, versions, path, file =
       params.values_at(:user, :repo, :lang, :versions, :path, :file)
@@ -163,14 +171,13 @@ module SpawnHelper
       cmd, 
       suffix
     ]
-
     pid, stdin, stdout, stderr = POSIX::Spawn.popen4 real_cmd
     begin
       Timeout.timeout timeout do
-        out, potential_error = stdout.read, stderr.read
+        out, eventual_error = stdout.read, stderr.read
         stdin.close; stdout.close; stderr.close
         _, status = Process.wait2(pid)
-        err = (out + potential_error) unless status.exitstatus == 0
+        err = (out + eventual_error) unless status && status.exitstatus == 0
       end
     rescue Timeout::Error
       Process.kill 9, pid

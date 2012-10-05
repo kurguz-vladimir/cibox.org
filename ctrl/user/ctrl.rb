@@ -63,6 +63,31 @@ class User < E
     end
   end
 
+  def ssh_key placeholder = nil
+    stream do |out|
+      @keys, e = spawn 'ssh keys'
+      out << render_p
+    end
+  end
+
+  def post_ssh_key
+    stream do
+      o, e = spawn ssh_add_key_cmd(*params.values_at(:key, :name))
+      e ? 
+        rpc_stream(:error, e) : 
+        crud_stream(resource: :ssh_key, action: :add)
+    end
+  end
+
+  def delete_ssh_key
+    stream do
+      o, e = spawn ssh_remove_key_cmd(params[:key])
+      e ? 
+        rpc_stream(:error, e) :
+        crud_stream(resource: :ssh_key, action: :remove)
+    end
+  end
+
   def delete
     halt 401 unless user?
     stream do |out|

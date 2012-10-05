@@ -1,0 +1,20 @@
+p
+  | Add your public SSH key(s) to be able to rsync files to/from CI Box
+
+p
+  | Key name:
+  br/
+  input type="text" name="name"
+p
+  | Key:
+  br/
+  input.span5 type="text" name="key"
+
+hr/
+- (@keys||'').split("\n").each do |key|
+  p
+    a href="#" onClick="cibox.remove_ssh_key('#{User.route :ssh_key}', '#{key}');"
+      i.icon-remove
+    = key
+
+.errors-container.hide
