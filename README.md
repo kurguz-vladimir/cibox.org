@@ -1,4 +1,4 @@
-# Welcome to <a href="http://cibox.org">CI Box!</a>
+# Welcome to [CIBox](http://cibox.org)!
 ## a Code Sharing and Continuous Integration Service
 
 # Code Sharing?
