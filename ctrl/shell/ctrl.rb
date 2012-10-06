@@ -10,7 +10,8 @@ class Shell < E
       repo, lang, versions, path, cmd =
         params.values_at(:repo, :lang, :versions, :path, :cmd)
       (versions||'default').split.each do |version|
-        rt_spawn lang, version, user, repo, path, cmd
+        result = rt_spawn lang, version, user, repo, path, cmd
+        break if result == :noexec_issue
       end
     end
   end

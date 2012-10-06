@@ -227,8 +227,13 @@ module SpawnHelper
     error = buffer.join("\n") unless $? && $?.exitstatus == 0
 
     if error
-      rpc_stream :error, error
-      ErrorModel.create user: user, cmd: real_cmd, error: error
+      if error =~ /noexec/
+        rpc_stream :progress_bar, :hide
+        return :noexec_issue
+      else
+        rpc_stream :error, error
+        ErrorModel.create user: user, cmd: real_cmd, error: error
+      end
     else
       update, alert = false, nil
       something_installed, something_uninstalled, something_compiled = nil

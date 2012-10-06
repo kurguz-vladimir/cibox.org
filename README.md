@@ -26,3 +26,16 @@ you can manually control everything.
 Just as you do on your computer.
 
 #### More to come soon, stay in touch.
+
+<hr/>
+
+**Issues?** - Here is the right page for them:<br/>
+[https://github.com/slivu/cibox.org/issues](https://github.com/slivu/cibox.org/pulls)
+
+#### Contributors are very welcome!
+Just fork the repo, update it and submit a pull request here:<br/>
+[https://github.com/slivu/cibox.org/pulls](https://github.com/slivu/cibox.org/pulls)
+
+#### Author: Silviu Rusu
+
+#### License: MIT
