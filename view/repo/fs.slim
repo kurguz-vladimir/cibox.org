@@ -40,8 +40,6 @@
 
 .pull-right style="margin-bottom: 2px;"
   - if owner
-    .span.muted
-      | rsync -avz [path] #{user?}@#{Cfg.hostname}:"#{@repo / (folders.join('/') / current_folder).escape_spaces}"
     .span
       .btn-group
         a.btn.btn-small onClick="repo_fs_crud_folder.create({repo: '#{ @repo }', path: '#{{ path }}', new: true});"
