@@ -12,8 +12,16 @@ $:.unshift File.expand_path '..', __FILE__
 require 'ext/numeric'
 require 'ext/string'
 require 'ext/symbol'
+require 'ext/array'
 require 'conf/conf'
 require 'conf/db'
+
+if opted_env = $*[0]
+  puts
+  puts "Explicitly setting Env to #{opted_env}"
+  puts
+  Cfg.env = opted_env
+end
 
 # Registering Slim engine with Tilt.
 # This should be done before controllers loaded
@@ -32,6 +40,8 @@ DataMapper.finalize
 
 # initializing the cache pool used by all controllers
 CachePool = Hash.new
+
+SUPPORTED_LANGS = %w[ruby node python php]
 
 # building app
 App = EApp.new :automount do
@@ -54,7 +64,7 @@ App.setup_controllers do |ctrl|
     setup :index, /github/ do
       before do
         @users = cache(:users) do
-          o,e = spawn list_users_cmd, user: Cfg.remote[:app_user]
+          o, e = admin_spawn list_users_cmd
           e ? nil : o.split(/\r?\n/)
         end || []
       end

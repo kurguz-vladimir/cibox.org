@@ -1,4 +1,6 @@
-- if user? == @user
+- owner = user? == @user
+
+- if owner
   li
     a href="#" onClick="repos_crudifier.create({user: '#{@user}'});"
       i.icon-plus
@@ -6,16 +8,28 @@
   li.divider
 
 - @repos.each do |repo|
-  li class="#{ 'active' if repo == @repo }"
-    table
-      tr
-        - if user? == @user
-          td
-            a href="#" onClick="repos_crudifier.update(true, {user: '#{@user}', repo: '#{repo}'});"
-              i.icon-edit
-        td
-          a href=Index.route(@user, repo)
-            i.icon-play
-            | &nbsp;
-            = repo
-          
+  li.span5
+    a href=Index.route(@user, repo)
+      i.icon-play
+      | &nbsp;
+      = repo
+    
+    - if owner
+      .span
+        a href="#" onClick="repos_crudifier.update(true, {user: '#{@user}', repo: '#{repo}'});"
+          i.icon-edit
+          | Edit
+    - if user?
+      - unless owner
+        .span
+          a href="#" onClick="cibox.fork_repo('#{{Repo.route :fork, repo, @user}}');"
+            i.icon-share-alt
+            | Fork
+    .span
+      a href="#" onClick="cibox.download_repo('#{{Repo.route :download, @user, repo, 'zip'}}');"
+        i.icon-download
+        | .zip
+    .span
+      a href="#" onClick="cibox.download_repo('#{{Repo.route :download, @user, repo, 'tar.gz'}}');"
+        i.icon-download
+        | .tar.gz

@@ -20,4 +20,8 @@ class String
     self.gsub(/\s/, '\\\0040')
   end
 
+  def shellify
+    self.gsub('"', '\"').gsub("'", "'\\\\''")
+  end
+
 end

@@ -5,26 +5,9 @@
 - current_folder = folders.pop
 
 .breadcrumb
-  a href=Index.route(@user) root
+  a href=Index.route(@user) home
   span.divider &nbsp;/
-  li.btn-group
-    a.btn href=Index.route(@user, @repo) = @repo
-    .btn.dropdown-toggle data-toggle="dropdown"
-      b.caret
-    ul.dropdown-menu
-      li
-        a href="#" onClick="cibox.download_repo('#{{Repo.route :download, @user, @repo, 'zip'}}');"
-          i.icon-download
-          | &nbsp;Download .zip
-      li
-        a href="#" onClick="cibox.download_repo('#{{Repo.route :download, @user, @repo, 'tar.gz'}}');"
-          i.icon-download
-          | &nbsp;Download .tar.gz
-      - if user? && !owner
-        li
-          a href="#" onClick="cibox.fork_repo('#{{Repo.route :fork, @repo, @user}}');"
-            i.icon-share
-            | &nbsp;Fork
+  a href=Index.route(@user, @repo) = @repo
   span.divider &nbsp;/
   
   - if path
@@ -82,10 +65,7 @@ table.table
             i.icon-play
           | &nbsp;
         .span
-          - if f[:is_text]
-            a.fm-file href="#" lcext=f[:lcext] onClick="cibox.invoke_file_reader('#{{ Repo::File.route :read }}', '#{f[:name]}');"
-              = f[:name]
-          - else
+          a.fm-file href="#" lcext=f[:lcext] onClick="cibox.invoke_file_reader('#{{ Repo::File.route :read }}', '#{f[:name]}');"
             = f[:name]
       - columns += 1
       - if columns == columns_max

@@ -21,14 +21,18 @@ class Cfg
       end
     end
 
-    def set_env
-      @env = ::File.directory?('/somebit') ? :dev : :prod
-      @dev = @env == :dev
+    def set_env env = nil
+      @env  = env || (::File.directory?('/somebit') ? :dev : :prod)
+      @dev  = @env == :dev
       @prod = @env == :prod
     end
 
     def env
       @env
+    end
+
+    def env= env
+      set_env env.to_sym
     end
 
     def dev?
@@ -41,10 +45,6 @@ class Cfg
 
     def raw_config
       @raw_config ||= YAML.load(File.read(Cfg.app_path / 'conf/conf.yml')).freeze
-    end
-
-    def credentials
-      @credentials ||= YAML.load(File.read(Cfg.app_path / 'conf/credentials.yml')).freeze
     end
     
   end

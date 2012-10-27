@@ -32,9 +32,10 @@ class Repo
       map Repo.base_url / :folder_crud
 
       def index placeholder = nil
-        @path = params[:repo] / params[:path]
-        @name = params[:name]
-        render_partial
+        @name, repo, path = params.values_at(:name, :repo, :path)
+        return unless repo && path
+        @path = repo / path
+        render_p
       end
 
       def post_index
@@ -59,7 +60,9 @@ class Repo
       map Repo.base_url / :file_crud
 
       def index placeholder = nil
-        @path = params[:repo] / params[:path]
+        repo, path = params.values_at(:repo, :path)
+        return unless repo && path
+        @path = repo / path
         render_partial
       end
 

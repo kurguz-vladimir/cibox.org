@@ -1,45 +1,72 @@
 - owner = user? && user? == @user
 - path  = params[:path]
-- path  = '.' if path.nil? || path.empty?
 
+input#effective-lang.hide
+.row
+  .span10
+    pre#shell-output_container
+      pre#shell-output
+      input#shell-prompt type="text" placeholder="  Terminal emulator. Run commands like ruby, gem, node, npm, python, pip etc. To run some code, put it in a file."
+    
+    - if user?
+      span.muted
+        | &nbsp;
+        i.icon-user
+        | &nbsp;Logged in as&nbsp;
+        strong = user?
+    - unless owner
+      span.muted
+        |. &nbsp;Viewing 
+        strong #{@user}
+        |'s account
 
-pre#shell-output
-input.span10#shell-prompt type="text" placeholder="Terminal emulator to run commands like ruby, gem, node, npm, python, pip etc. To run some code, put it in a file."
-#shell-prompt-close_button.pull-right.btn.btn-small onClick="cibox.reset_shell_output();"
-  i.icon-remove#shell-prompt-close_button-icon
+    .pull-right
+      span.muted
+        | Tired to work in browser?
+      a href="https://github.com/slivu/cibox"  Try Console Client&nbsp;&nbsp;
+      | <a href="http://flattr.com/thing/927608/Code-Sharing-and-Continuous-Integration-Service" target="_blank">
+      | <img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" style="margin-top: 5px;" /></a>
+      a#shell-prompt-close_button.btn.btn-small onClick="cibox.reset_shell_output();"
+        i.icon-remove#shell-prompt-close_button-icon
+p
+  .errors-container.hide
   
-
-input.hide id="effective-lang" value="#{Cfg.default_lang}"
 .tabbable.tabs-below
   .tab-content
     - @langs.each do |lang, versions|
-      - if versions.size > 0
-        div id="verselector-tab-#{lang}" class="tab-pane #{ 'active' if lang == Cfg.default_lang }"
+      div.tab-pane#verselector-tab-bash
+          
+      - if versions.size == 0
+        div.tab-pane id="verselector-tab-#{lang}" Coming Soon
+      - else
+
+        div.tab-pane id="verselector-tab-#{lang}"
           label.checkbox.inline
             input class="#{lang}-verselector" id="#{lang}-verselector-toggler" type="checkBox" onClick="$('.#{lang}-verselector').prop('checked',!!$('##{lang}-verselector-toggler').prop('checked')); $('#shell-prompt').focus();"
             | All
 
-          - versions.each do |v|
-            - is_checked = v == Cfg.default_lang_version[lang]
+          - versions.each_pair do |v, is_default|
             label.checkbox.inline
               // ugly hack until Slim fixes "checked" issue.
               // as of Slim 1.3.1 `checked=some_false_expressioon` result in checked=""
               // which is treated as true by browser
-              - if is_checked
+              - if is_default
                 input class="#{lang}-verselector" id="#{lang}-verselector-#{v}" type="checkBox" name="versions[]" value="#{v}" onClick="cibox.update_location.extend({versions: cibox.effective_lang_versions('+')}); $('#shell-prompt').focus();" checked=true
               - else
                 input class="#{lang}-verselector" id="#{lang}-verselector-#{v}" type="checkBox" name="versions[]" value="#{v}" onClick="cibox.update_location.extend({versions: cibox.effective_lang_versions('+')}); $('#shell-prompt').focus();"
-              
-              = v
-      - else
-        div.tab-pane id="verselector-tab-#{lang}"
-          strong Coming Soon
+              span.verselector-item
+                = v
 
   ul.nav.nav-tabs#menu-tab
-    - @langs.each do |lang, versions|
-      li class="#{ 'active' if lang == Cfg.default_lang }"
+    li.active
+      
+      a href="#verselector-tab-bash" data-toggle="tab" onClick="cibox.switch_lang(''); cibox.update_location.remove(['versions']); $('#shell-prompt').focus();" $
+
+    - @langs.each_key do |lang|
+      li
         a href="#verselector-tab-#{lang}" data-toggle="tab" onClick="cibox.switch_lang('#{lang}', cibox.effective_file_ext()); cibox.update_location.extend({versions: cibox.effective_lang_versions('+')}); $('#shell-prompt').focus();" lang=lang
-          = lang.capitalize
+          img src=("/icons/%s.png" % lang)
+
     li.dropdown
       a.dropdown-toggle data-toggle="dropdown" href="#"
         i.icon-list
@@ -55,7 +82,7 @@ input.hide id="effective-lang" value="#{Cfg.default_lang}"
     - if owner
       li.dropdown
         a.dropdown-toggle data-toggle="dropdown" href="#"
-          i.icon-user
+          i.icon-lock
           | &nbsp;SSH Keys
           b.caret
         ul.dropdown-menu
@@ -70,7 +97,7 @@ input.hide id="effective-lang" value="#{Cfg.default_lang}"
       li.dropdown
         a href=User.route(:logout)
           i.icon-off
-          | &nbsp;Logout #{ @user }
+          | &nbsp;Logout
     - else
       - if user?
         li.dropdown
@@ -90,12 +117,12 @@ input.hide id="effective-lang" value="#{Cfg.default_lang}"
 #ssh_pub_key-modal.modal.hide
   .modal-body
     p
-      | Add this key to your GitHub account to be able to push stuff from your CI Box
-    input.span5 type='text' value=@ssh_pub_key
+      | Add this key to your GitHub account
+      br/
+      | to be able to push stuff from your CIBox account
+    input.span5 type='text' value=@ssh_pub_key onClick="$(this).focus().select();"
   .modal-footer
     button.btn data-dismiss="modal" aria-hidden="true" Close
-
-.errors-container.hide
 
 #file_reader.hide
   .row
@@ -122,25 +149,20 @@ input.hide id="effective-lang" value="#{Cfg.default_lang}"
         i.icon-remove#file_reader-close_button-icon
   #file_reader-content
 
-.pull-right
-  | Tired to work in browser? Try the
-  a href="https://github.com/slivu/cibox"  Console Client
-
-- if @repo == '.'
+- unless @repo
   h4
     | First things first
   h5.well
-    | Click <b>Repositories</b> on menu above and create a brand new repo where you'll can create and run files.
+    | Click <b>Repositories</b> on menu above to create a brand new repo where you'll can create and run your files.
   h5.well
     | If you do not want to create files manually, you can clone a GitHub repository.
     br/
-    | Just type `git clone git://your.repo` in the terminal above.
+    | Just type <code>git clone git://your.repo</code> in the terminal above.
   h5.well
-    | If that's not the way either, use `rsync` to upload your files.
-    br/
-    | Click SSH > authorized_keys in the menu above and add your public SSH key.
-    br/
-    | Then create a repository and use the generated `rsync` command.
+    | Or use
+    a href="https://github.com/slivu/cibox"  Console Client&nbsp;
+    | if you prefer to work in terminal.
+    
 hr/
 #repo_fs
   #repo_fs-fm
@@ -305,16 +327,19 @@ script
          localStorage['effectiveLang'] = effectiveLang;
          cibox.update_location.extend({lang: effectiveLang});
       });
-      var effectiveLang = queryString['lang'] || 
-        localStorage['effectiveLang'] || cibox.effective_lang();
-      
-      if (effectiveLang) {
-        cibox.switch_lang(effectiveLang);
 
+      var effectiveLang = queryString['lang'] || localStorage['effectiveLang'];
+      
+      if (effectiveLang)
+        cibox.switch_lang(effectiveLang);
+      else
+        effectiveLang = cibox.effective_lang();
+
+      if (effectiveLang) {
         var opted_versions = ( _ = queryString['versions']||'' ).length > 0 ? _.split('+') : [];
         if (opted_versions.length > 0) {
           $('.' + effectiveLang + '-verselector').each( function() {
-            $(this).attr('checked', jQuery.inArray($(this).attr('value'), opted_versions) >= 0 );
+            $(this).attr('checked', jQuery.inArray($(this).attr('value'), opted_versions) >= 0);
           });
         }
       }
@@ -327,20 +352,13 @@ script
       
     });
 
-- if @user
-  script
-    | $(function(){
-        cibox.update_procedures_list('#{{ Procedure.route :dropdown }}');
-        cibox.update_repo_list('#{{ Repo.route :dropdown }}');
-        cibox.update_repo_fs('#{{ Repo.route :fs }}');
-      });
 
-- if @process_login_request
-  script
-    | $(function(){
-        cibox.login('#{{ @process_login_request }}');
-      });
+script
+  | $(function(){
+      cibox.update_procedures_list('#{{ Procedure.route :dropdown }}');
+      cibox.update_repo_list('#{{ Repo.route :dropdown }}');
+      cibox.update_repo_fs('#{{ Repo.route :fs }}');
+    });
 
 iframe#download.hide src='about:blank'
 script src='/vendor/ace-builds/src-min-noconflict/ace.js'
-

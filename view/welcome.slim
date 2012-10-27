@@ -1,65 +1,109 @@
 
-h2 Welcome to CI Box!
-h3 a Code Sharing and Continuous Integration Service
-
 .row
-  .span.hero-unit
-    h3 Code Sharing?
-    | We all like to share snippets via jsfiddle,
-    br/
-    | click Run and see the result straight away.
-    br/
-    br/
-    | CI Box offers same nifty approach 
-    br/
-    | for server-side languages/frameworks,
-    br/
-    strong
-      | Ruby, Python, Node.js 
-    | (others to come soon).
-
-
-  .span.hero-unit
-    h3 Continuous Integration?
-    strong
-      | Create / Edit / Test / Build
-    br/
-    | your stuff with just a browser,
-    br/
-    | being it desktop or mobile.
-    br/
-    br/
-    | With CI Box you can easily run your code
-    br/
-    | on any version of your Kung Fu language
-    br/
-    br/
-    | Yes, that's offered by any CI service.
-    br/
-    br/
-    | The only difference - 
-    br/
-    strong
-      | you can manually control everything.
-    br/
-    br/
-    | Just as you do on your computer.
-    
-
-
+  .span
+      h2 Welcome to CIBox!
+      h3.clear a Code Sharing and Continuous Integration Service
+  .span.pull-right
+      a#login href=User.route(:auth__github) Sign In/Up
+      .span.pull-right with your GitHub account
+hr/
 
 .row
   .span
-    h4
-      | Please Login with your&nbsp;
-      a href=User.route(:auth__github) GitHub Account
-      | &nbsp;to see it in action
-    | your GitHub account should be at least 30 days old
-br/
-br/
+    .hero-unit
+      h3 Code Sharing?
+      p
+        | We all like to share snippets via jsFiddle,
+        br/
+        | click Run and see the result straight away.
+      
+      p
+        | CIBox offers same nifty approach 
+        br/
+        | for server-side languages/frameworks:
+        br/
+        strong
+          | Ruby, Python, Node.js, PHP
 
-p
-    | Here is a short intro. More to come soon.
+    .hero-unit
+      h3 Continuous Integration?
+      p
+        | Test / Build your stuff using 
+        br/
+        | either a browser or 
+        a href="https://github.com/slivu/cibox" terminal
+      p
+        | With CIBox you can easily run your code
+        br/
+        | on any version of your Kung Fu language
+      p
+        | Yes, that's offered by any CI service.
+      p
+        | But, hey, there is a big difference -
+        br/
+        u
+          | you can Control Everything in Real Time!
+      p
+        | Just as you do on your computer.
 
-<iframe width="640" height="480" src="http://www.youtube.com/embed/ceJLwOOATx0" frameborder="0" allowfullscreen></iframe>
+    .well
+      h3 A word more on CI
+      p
+        | Tired of <u>"push > wait > see result in browser"</u> workflow?
+      p
+        | Do not want to push a eventually <u>broken commit</u>?
+      p
+        | Want to have greenish tests on all versions <u>before push</u>?
+      p
+        | Want to test <u>right here right now, without queues</u>,
+        br/
+        | and have <u><b>result returned in real time</b></u>?
+      p
+        | Ok, that's easy!
+      p
+        | Reserve some time on weekend
+        br/
+        | and install all versions you need.
+        br/
+        | Then reserve some time each week to
+        br/
+        | maintain installed versions and install new ones.
+        br/
+        | Ask your colleagues to do the same.
+      p
+        strong
+          | Or use CIBox
+    #disqus
+      #disqus_thread
+      script
+        | var disqus_shortname = 'cibox';
+        | (function() {
+        |    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        |    dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        |    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        | })();
+
+      a.dsq-brlink href="http://disqus.com"
+        | comments powered by
+        span.logo-disqus Disqus
+
+  .span.pull-right
+    ul style="list-style: none;"
+      li.well
+        <iframe width="320" height="240" src="http://www.youtube.com/embed/ceJLwOOATx0" frameborder="0" allowfullscreen></iframe>
+    #gallery
+      ul
+        - 0.upto(10).each do |i|
+          - img = "/images/welcome/#{i}.png"
+          li.well
+            a href=img
+              img src=img style="width: 320px; height: 240px;"
+
+    == load_assets  'js/jquery.lightbox.js',
+                    'css/jquery.lightbox.css',
+                    from: 'vendor/jquery-lightbox/' 
+    script
+      | $(function() {
+          $('#gallery a').lightBox();
+        });
 

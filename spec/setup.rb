@@ -8,7 +8,7 @@ module SpecSetup
   end
 
   def users
-    o, e = spawn list_users_cmd, user: Cfg.remote[:app_user]
+    o, e = admin_spawn list_users_cmd
     e ? [] : o.split(/\r?\n/)
   end
 
@@ -23,7 +23,7 @@ module SpecSetup
   end
 
   def ruby_versions
-    o, e = spawn ruby_versions_cmd, user: Cfg.remote[:app_user]
+    o, e = admin_spawn ruby_versions_cmd
     e ? [] : o.split(/\r?\n/)
   end
 

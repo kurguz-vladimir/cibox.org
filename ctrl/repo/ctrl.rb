@@ -13,12 +13,12 @@ class Repo < E
   def post_fork repo, owner
     stream do
       rpc_stream :progress_bar, :show
-      o, e = spawn fork_repo_cmd(repo, owner)
+      o, e = admin_spawn fork_repo_cmd(repo, owner)
       if e
         rpc_stream :error, e
       else
-        clear_cache! [user, :repo_list]
         rpc_stream :alert, 'Repo successfully forked. See it in your account.'
+        clear_cache! [user, :repo_list]
       end
       rpc_stream :progress_bar, :hide
     end
@@ -27,21 +27,13 @@ class Repo < E
   def download user, repo, format
     stream do
       rpc_stream :progress_bar, :show
-      o, e = spawn 'repos archive %s' % repo, user: user
+      o, e = spawn archive_repo_cmd(repo, user), user: user
       if e
         rpc_stream(:error, e)
       else
         dst = Cfg.var_path / :downloads / user
         FileUtils.mkdir_p dst
-        cmd = 'rsync -e"ssh -p%s" %s@%s:"%s.%s" "%s"' % [
-          Cfg.remote[:port],
-          user,
-          Cfg.remote[:host],
-          repo,
-          format,
-          dst
-        ]
-        o, e = spawn cmd: cmd
+        o, e = spawn cmd: download_repo_cmd(user, repo, format, dst)
         e ? rpc_stream(:error, e) :
           rpc_stream(:download, '/downloads/%s/%s.%s' % [user, repo, format])
       end

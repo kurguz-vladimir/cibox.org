@@ -14,27 +14,24 @@ class Index < E
   end
 
   def index user = nil, repo = nil
-    return render(:welcome) unless user
-    @user, @repo = user, (repo||'.')
-    
-    @ruby_versions = cache(:ruby_versions) do
-      o,e = spawn ruby_versions_cmd, user: Cfg.remote[:app_user]
-      e ? nil : o.split(/\r?\n/)
-    end || []
-    @node_versions = cache(:node_versions) do
-      o,e = spawn node_versions_cmd, user: Cfg.remote[:app_user]
-      e ? nil : o.split(/\r?\n/)
-    end || []
-    @python_versions = cache(:python_versions) do
-      o,e = spawn python_versions_cmd, user: Cfg.remote[:app_user]
-      e ? nil : o.split(/\r?\n/)
-    end || []
-    @langs = { ruby: @ruby_versions, node: @node_versions, python: @python_versions }
+    unless user
+      redirect user? if user?
+      return render(:welcome) 
+    end
+    error 404, 'User Not Found' unless @users.include?(user)
 
-    @ssh_pub_key = cache([user, :ssh_pub_key]) do
-      o,e = spawn ssh_pub_key_cmd
-      e ? nil : o.strip
-    end || []
+    @user, @repo = user, repo
+    
+    @langs = SUPPORTED_LANGS.inject({}) do |langs, lang|
+      langs.update lang => lang_setup(lang)
+    end
+
+    if user?
+      @ssh_pub_key = cache([user, :ssh_pub_key]) do
+        o, e = spawn ssh_pub_key_cmd
+        e ? nil : o.strip
+      end || []
+    end
 
     render
   end
@@ -52,7 +49,29 @@ class Index < E
 
   def system__clear_cache
     clear_cache! :users
-    clear_cache! :ruby_versions
+    clear_cache_like! [:langs]
+  end
+
+  private
+  def lang_setup lang
+    cache([:langs, lang]) do
+      o,e = spawn lang_versions_cmd(lang)
+      rv = nil
+      unless e
+        versions = o.split(/\r?\n/).map { |v| v.strip } rescue nil
+        if versions.is_a?(Array)
+          o, e = spawn lang_default_version_cmd(lang)
+          p [o, e]
+          if e
+            default = versions.first
+          else
+            default = o.strip 
+          end
+          rv = versions.inject({}) { |f,c| f.update c => (default == c) }
+        end
+      end
+      rv
+    end || []
   end
 
 end
