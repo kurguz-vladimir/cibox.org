@@ -7,8 +7,8 @@ We all like to share snippets via jsfiddle,
 click Run and see the result straight away.
 
 CIBox offers same nifty approach 
-for server-side languages/frameworks,
-`Ruby`, `Python`, `Node.js` and `PHP`.
+for server-side languages/frameworks -
+`Ruby`, `Python`, `Node.js` and `PHP`
 
 # Continuous Integration?
 Create / Edit / Test / Build
