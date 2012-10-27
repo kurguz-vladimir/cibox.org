@@ -8,7 +8,7 @@ click Run and see the result straight away.
 
 CIBox offers same nifty approach 
 for server-side languages/frameworks,
-Ruby, Python, Node.js (others to come soon).
+`Ruby`, `Python`, `Node.js` and `PHP`.
 
 # Continuous Integration?
 Create / Edit / Test / Build
