@@ -15,7 +15,8 @@ class Shell < E
     end
   end
 
-  def post_file
+  # do not use POST here cause this will break autorun on Mozilla browsers
+  def get_file
     stream do
       invoke_file
     end

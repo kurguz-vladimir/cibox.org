@@ -6,7 +6,8 @@ class Procedure < E
     render_p
   end
 
-  def post_invoke
+  # do not use POST here cause this will break autorun on Mozilla browsers
+  def get_invoke
     stream do
       repo, lang, versions, path, procedure_id =
         params.values_at(:repo, :lang, :versions, :path, :procedure_id)

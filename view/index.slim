@@ -172,11 +172,6 @@ script
       cibox = new CIBox('#{ @user }', '#{ @repo }', '#{{ path }}');
       
       var output = new EventSource('#{{ Index.route :subscribe }}/' + window.name);
-      output.onerror = function() {
-        cibox.error('<h4>Something weird happened.</h4>Try to reload the page please.<br/><br/>If it does not help, make sure you are using a modern browser that supports EventSource.<br/><br/>If your browser is ok, please report this issue  at <strong>#cibox</strong> IRC channel on irc.freenode.net<br/>Thank you.');
-        output.close();
-      }
-      output.onopen = function(e) {
       
       output.addEventListener('crud_stream', function(e) {
         if (e.origin != '#{base_url}'){
@@ -295,6 +290,9 @@ script
         cibox.scroll_shell();
       }, false);
 
+      
+      
+      
       var queryString = getQueryString();
       if ( queryString['file'] ) {
         cibox.invoke_file_reader('#{{ Repo::File.route :read }}', queryString['file'], false);
@@ -346,22 +344,23 @@ script
           });
         }
       }
-      if ( queryString['run'] ) cibox.invoke_file_runner('#{{Shell.route :file}}', queryString['file']);
+    
+      // both triggers should go only after versions was set
 
-      // this should always go after versions was set
+      if ( queryString['run'] ) {
+        cibox.invoke_file_runner('#{{Shell.route :file}}', queryString['file']);
+      }
+
       if ( queryString['procedure_id'] ) {
         cibox.invoke_procedure('#{{Procedure.route :invoke}}', queryString['procedure_id'], false);
       }
-      
-    }});
 
-
-script
-  | $(function(){
       cibox.update_procedures_list('#{{ Procedure.route :dropdown }}');
       cibox.update_repo_list('#{{ Repo.route :dropdown }}');
       cibox.update_repo_fs('#{{ Repo.route :fs }}');
+
     });
+
 
 iframe#download.hide src='about:blank'
 script src='/vendor/ace-builds/src-min-noconflict/ace.js'
