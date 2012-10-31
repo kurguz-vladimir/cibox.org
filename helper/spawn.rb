@@ -96,7 +96,7 @@ module SpawnHelper
     'bin/chroot_user %s' % user.shellify
   end
   def logout_user_cmd user
-    'bin/chroot_user %s off' % user.shellify
+    'bin/logout_user %s' % user.shellify
   end
 
   def delete_user_cmd user

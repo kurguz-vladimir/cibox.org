@@ -38,9 +38,6 @@ DataMapper.finalize
 # loading controllers
 %w[ctrl crud].each   { |f| Dir[Cfg.ctrl_path  / '**/%s.rb' % f].each { |f| require f } }
 
-# initializing the cache pool used by all controllers
-CachePool = Hash.new
-
 SUPPORTED_LANGS = %w[ruby node python php]
 
 # building app
@@ -48,6 +45,10 @@ App = EApp.new :automount do
 
   session :memory
   assets_url :/
+  pids do
+    Dir[Cfg.app_path / 'tmp/pids/*.pid'].map { |f| File.read f }
+  end
+  cache_pool Hash.new
 
   if Cfg.dev?
     use Rack::ShowExceptions
@@ -103,9 +104,6 @@ App.setup_controllers do |ctrl|
       end
     end
   end
-
-  # all controllers uses same cache pool
-  cache_pool! CachePool
 
   engine :Slim, :pretty => Cfg.dev?
   layout :layout

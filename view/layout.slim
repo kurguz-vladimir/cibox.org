@@ -11,11 +11,10 @@ head
                   :from => 'vendor/bootstrap/'
 
   
-  == load_assets  'jquery.noty.js', \
-                  'layouts/top.js', \
-                  'layouts/topRight.js', \
-                  'themes/default.js', \
-                  :from => 'vendor/noty/'
+  == load_assets  'js/bootstrap-notify.js', \
+                  'css/bootstrap-notify.css', \
+                  'css/styles/alert-bangtidy.css', \
+                  :from => 'vendor/bootstrap-notify/'
 
   == load_assets  'e-crudify-bootstrap.js', \
                   'mime.js', \
@@ -53,14 +52,18 @@ body
         .span.pull-right
           | Powered by
           a href="https://github.com/slivu/espresso" &nbsp;Espresso
+          p
+            | <a href="http://flattr.com/thing/927608/Code-Sharing-and-Continuous-Integration-Service" target="_blank">
+            | <img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" style="margin-top: 5px;" /></a>
 
-script
-  | var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-27879048-3']);
-    _gaq.push(['_trackPageview']);
+  .notifications.top-right
+  script
+    | var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-27879048-3']);
+      _gaq.push(['_trackPageview']);
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();

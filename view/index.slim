@@ -24,23 +24,23 @@ input#effective-lang.hide
       span.muted
         | Tired to work in browser?
       a href="https://github.com/slivu/cibox"  Try Console Client&nbsp;&nbsp;
-      | <a href="http://flattr.com/thing/927608/Code-Sharing-and-Continuous-Integration-Service" target="_blank">
-      | <img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" style="margin-top: 5px;" /></a>
+      a.badge.badge-info#help-button
+        .icon-question-sign
+        | Help
+      
       a#shell-prompt-close_button.btn.btn-small onClick="cibox.reset_shell_output();"
         i.icon-remove#shell-prompt-close_button-icon
-p
-  .errors-container.hide
-  
+
 .tabbable.tabs-below
   .tab-content
     - @langs.each do |lang, versions|
-      div.tab-pane#verselector-tab-bash
+      .tab-pane#verselector-tab-bash
           
       - if versions.size == 0
-        div.tab-pane id="verselector-tab-#{lang}" Coming Soon
+        .tab-pane id="verselector-tab-#{lang}" Coming Soon
       - else
 
-        div.tab-pane id="verselector-tab-#{lang}"
+        .tab-pane id="verselector-tab-#{lang}"
           label.checkbox.inline
             input class="#{lang}-verselector" id="#{lang}-verselector-toggler" type="checkBox" onClick="$('.#{lang}-verselector').prop('checked',!!$('##{lang}-verselector-toggler').prop('checked')); $('#shell-prompt').focus();"
             | All
@@ -145,7 +145,7 @@ p
     .span
       strong#file_reader-name
     .span.pull-right
-      a.btn.btn-small.file_reader-button.file_reader-close_button onClick="$('#file_reader').hide(); cibox.update_location.remove(['file', 'run']);"
+      a.btn.btn-small#file_reader-close_button onClick="$('#file_reader').hide(); cibox.update_location.remove(['file', 'run']);"
         i.icon-remove#file_reader-close_button-icon
   #file_reader-content
 
@@ -172,17 +172,12 @@ script
       cibox = new CIBox('#{ @user }', '#{ @repo }', '#{{ path }}');
       
       var output = new EventSource('#{{ Index.route :subscribe }}/' + window.name);
-
-      output.addEventListener('shell_stream', function(e) {
-        if (e.origin != '#{base_url}'){
-          alert('Origin Mismatch');
-          return false;
-        }
-
-        $('#shell-output').append(cibox.sanitize_output(e.data) + "<br/>");
-        cibox.scroll_shell();
-      }, false);
-
+      output.onerror = function() {
+        cibox.error('<h4>Something weird happened.</h4>Try to reload the page please.<br/><br/>If it does not help, make sure you are using a modern browser that supports EventSource.<br/><br/>If your browser is ok, please report this issue  at <strong>#cibox</strong> IRC channel on irc.freenode.net<br/>Thank you.');
+        output.close();
+      }
+      output.onopen = function(e) {
+      
       output.addEventListener('crud_stream', function(e) {
         if (e.origin != '#{base_url}'){
           alert('Origin Mismatch');
@@ -213,9 +208,7 @@ script
 
             if (data.action == 'delete') {
               if ( file == data.params['name'] ) {
-                // TODO: find why browser is hanging 
-                // when updating location after file deletion
-                // cibox.update_location.remove(['file', 'run']);
+                cibox.update_location.remove(['file', 'run']);
                 $('#file_reader').hide();
               }
             } else {
@@ -260,7 +253,7 @@ script
           
           switch (data.procedure) {
             case 'progress_bar':
-              data.call == 'show' ? 
+              data.call == 'show' ?
                 cibox.show_progress_bar():
                 cibox.hide_progress_bar();
               break;
@@ -290,6 +283,16 @@ script
         } catch (exc) {
           cibox.error('unable to parse given JSON');
         } 
+      }, false);
+
+      output.addEventListener('shell_stream', function(e) {
+        if (e.origin != '#{base_url}'){
+          alert('Origin Mismatch');
+          return false;
+        }
+
+        $('#shell-output').append(cibox.sanitize_output(e.data) + "<br/>");
+        cibox.scroll_shell();
       }, false);
 
       var queryString = getQueryString();
@@ -350,7 +353,7 @@ script
         cibox.invoke_procedure('#{{Procedure.route :invoke}}', queryString['procedure_id'], false);
       }
       
-    });
+    }});
 
 
 script

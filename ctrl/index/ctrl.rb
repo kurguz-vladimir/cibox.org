@@ -38,7 +38,9 @@ class Index < E
 
   def subscribe uuid
     content_type!  'text/event-stream'
-    charset!       'UTF-8'
+    # disabling explicit charset cause this breaks EventSource on older chrome
+    # see http://code.google.com/p/chromium/issues/detail?id=66666 for details
+    # charset!       'UTF-8'
     cache_control! 'No-Cache'
 
     stream :keep_open do |out|
@@ -55,12 +57,12 @@ class Index < E
   private
   def lang_setup lang
     cache([:langs, lang]) do
-      o,e = spawn lang_versions_cmd(lang)
+      o,e = spawn lang_versions_cmd(lang), user: :admin
       rv = nil
       unless e
         versions = o.split(/\r?\n/).map { |v| v.strip } rescue nil
         if versions.is_a?(Array)
-          o, e = spawn lang_default_version_cmd(lang)
+          o, e = spawn lang_default_version_cmd(lang), user: :admin
           p [o, e]
           if e
             default = versions.first
