@@ -55,8 +55,19 @@ class Repo < E
       @user, @repo = user, repo
     
       @repo_fs = cache([user, :repo_fs, repo]) do
-        o, e = spawn repo_fs_cmd(repo), user: user
-        e ? nil : YAML.load(o)
+        o, e   = spawn repo_fs_cmd(repo), user: user
+        if e
+          nil # do not cache anything on errors
+        else
+          if (fs = YAML.load(o) rescue nil).is_a?(Hash)
+            fs.inject({}) do |f,c|
+              f.update c.first => {
+                folders: Hash[((c.last||{})[:folders] || {}).sort_by {|e| (e.last||{})[:name]||''}],
+                files:   Hash[((c.last||{})[:files]   || {}).sort_by {|e| (e.last||{})[:name]||''}],
+              }
+            end
+          end
+        end
       end
       @repo_fs ||= {}
       

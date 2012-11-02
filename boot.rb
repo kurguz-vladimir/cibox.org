@@ -5,6 +5,8 @@ require 'date'
 require 'pty'
 require 'timeout'
 
+require 'ap'
+
 require 'bundler/setup'
 Bundler.require
 
