@@ -4,8 +4,7 @@ require 'yaml'
 require 'date'
 require 'pty'
 require 'timeout'
-
-require 'ap'
+require 'base64'
 
 require 'bundler/setup'
 Bundler.require

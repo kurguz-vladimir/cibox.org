@@ -3,9 +3,11 @@ module VersionsHelper
   def lang_versions lang
     cache([:langs, lang]) do
       o, e = spawn lang_versions_cmd(lang), user: :admin
-      rv = nil
-      unless e
-        versions = o.split(/\n/).map { |v| v.strip } rescue nil
+      if e
+        p e
+        nil # cache nothing on failures
+      else
+        versions = o.split(/\r?\n/).map { |v| v.strip } rescue nil
         if versions.is_a?(Array)
           o, e = spawn lang_default_version_cmd(lang), user: :admin
           if e
@@ -13,11 +15,10 @@ module VersionsHelper
           else
             default = o.strip 
           end
-          rv = versions.inject({}) { |f,c| f.update c => (default == c) }
+          versions.inject({}) { |f,c| f.update c => (default == c) }
         end
       end
-      rv
-    end || []
+    end || {}
   end
 
   def opted_versions lang, opted_versions

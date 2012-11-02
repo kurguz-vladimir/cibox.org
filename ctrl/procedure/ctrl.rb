@@ -14,15 +14,17 @@ class Procedure < E
 
       if p = ProcedureModel.first(id: procedure_id)
         if p.public? || user? == p.user
-          shell_stream '=== Invoking "%s" Procedure ===' % p.name
+          shell_stream escape_path( "=== Invoking \"%s\" Procedure ===\n" % p.name )
+          
           commands = p.commands.split(/\r?\n/).reject { |c| c.strip.size == 0 }
-          (versions||'default').split.each do |version|
+
+          opted_versions(lang, versions).each do |version|
             commands.each do |cmd|
               rt_spawn *[lang, version, p.user, repo, path, cmd].shellify
             end
           end
         else
-          rpc_stream :alert, 'Please Login'
+          rpc_stream :error, '=== Please Login ==='
         end
       end
     end

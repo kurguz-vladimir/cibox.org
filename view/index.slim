@@ -273,8 +273,8 @@ script
           alert('Origin Mismatch');
           return false;
         }
-
-        $('#shell-output').append(cibox.sanitize_output(e.data) + "<br/>");
+        var data = decodeURIComponent(e.data).replace(/\n/, "<br/>");
+        $('#shell-output').append(data);
         cibox.scroll_shell();
       }, false);
 

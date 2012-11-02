@@ -4,7 +4,7 @@
       h2 Welcome to CIBox!
       h3.clear a Code Sharing and Continuous Integration Service
   .span.pull-right
-      a#login href=User.route(:auth__github) Sign In/Up
+      button#login onClick="window.location='#{User.route(:auth__github)}'" Sign In/Up
       .span.pull-right with your GitHub account
 hr/
 

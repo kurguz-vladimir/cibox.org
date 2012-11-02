@@ -201,7 +201,7 @@ module SpawnHelper
 
   def rt_spawn lang, version, user, repo, path, orig_cmd
     rpc_stream :progress_bar, :show
-    shell_stream '--- %s ---' % version unless lang.empty?
+    shell_stream escape_path("--- %s ---\n" % version) unless lang.empty?
 
     # string operations are expensive enough, so doing some cache
     remote_env = cache [:rt_spawn, lang, version] do
@@ -254,13 +254,12 @@ module SpawnHelper
 
     timeout, error = Cfg.timeout[:interactive_shell], nil
     
-    buffer = [orig_cmd]
     begin
       Timeout.timeout timeout do
         PTY.spawn real_cmd do |r, w, pid|
           begin
             r.sync
-            r.each_line { |l| shell_stream(l); buffer << l }
+            r.each_char { |c| shell_stream escape_path(c) }
           rescue Errno::EIO => e
             # simply ignoring this
           ensure
@@ -271,7 +270,7 @@ module SpawnHelper
     rescue Timeout::Error
       error = 'Max execution time of %s seconds exceeded' % timeout
     end
-    error = buffer.join("\n") unless $? && $?.exitstatus == 0
+    error = "\"#{orig_cmd}\" command failed. See console for errors." unless $? && $?.exitstatus == 0
 
     if error
       rpc_stream :error, error

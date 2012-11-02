@@ -43,6 +43,8 @@ class User < E
           token = oauth_client.auth_code.get_token(params[:code])
         rescue OAuth2::Error => e
           throw :login_process_error, "Was unable to perform OAuth request"
+        rescue => e
+          throw :login_process_error, e.message
         end
         
         begin

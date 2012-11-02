@@ -17,7 +17,7 @@
                 i.icon-edit
           - if p.public? || owner
             td
-              a href="#" onClick="cibox.invoke_procedure('#{{ Procedure.route :invoke }}', '#{p.id}');"
+              a href="#" onClick="window.location = cibox.get_location.extend({procedure_id: #{p.id} }, ['file', 'run']);"
                 i.icon-play
                 | &nbsp;
                 = p.name
