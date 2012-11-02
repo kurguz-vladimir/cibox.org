@@ -9,12 +9,15 @@ head
                   'css/bootstrap.min.css', \
                   'css/bootstrap-responsive.min.css', \
                   :from => 'vendor/bootstrap/'
-
   
   == load_assets  'js/bootstrap-notify.js', \
                   'css/bootstrap-notify.css', \
                   'css/styles/alert-bangtidy.css', \
                   :from => 'vendor/bootstrap-notify/'
+  
+  == load_assets  'select2.min.js', \
+                  'select2.css', \
+                  :from => 'vendor/select2/'
 
   == load_assets  'e-crudify-bootstrap.js', \
                   'mime.js', \

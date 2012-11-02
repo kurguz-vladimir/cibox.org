@@ -60,6 +60,7 @@ App.setup_controllers do |ctrl|
 
   include SpawnHelper
   include OutputHelper
+  include VersionsHelper
 
   if [Index, User].include?(ctrl)
     setup :index, /github/ do

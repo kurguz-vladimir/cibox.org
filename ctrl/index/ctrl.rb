@@ -23,7 +23,7 @@ class Index < E
     @user, @repo = user, repo
     
     @langs = SUPPORTED_LANGS.inject({}) do |langs, lang|
-      langs.update lang => lang_setup(lang)
+      langs.update lang => lang_versions(lang)
     end
 
     if user?
@@ -52,28 +52,6 @@ class Index < E
   def system__clear_cache
     clear_cache! :users
     clear_cache_like! [:langs]
-  end
-
-  private
-  def lang_setup lang
-    cache([:langs, lang]) do
-      o,e = spawn lang_versions_cmd(lang), user: :admin
-      rv = nil
-      unless e
-        versions = o.split(/\r?\n/).map { |v| v.strip } rescue nil
-        if versions.is_a?(Array)
-          o, e = spawn lang_default_version_cmd(lang), user: :admin
-          p [o, e]
-          if e
-            default = versions.first
-          else
-            default = o.strip 
-          end
-          rv = versions.inject({}) { |f,c| f.update c => (default == c) }
-        end
-      end
-      rv
-    end || []
   end
 
 end

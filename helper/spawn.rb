@@ -133,27 +133,6 @@ module SpawnHelper
     'cibox-langs %s default_version' % lang.shellify
   end
 
-
-  def invoke_file action = 'run'
-    user, repo, lang, versions, path, file =
-      params.values_at(:user, :repo, :lang, :versions, :path, :file)
-    
-    run, compile = '%s "%s"' % [lang, file].shellify, nil
-    ext = ::File.extname(file)
-    is_coffee = ext == '.coffee'
-    is_typescript = ext == '.ts'
-    if action == 'compile' || is_coffee || is_typescript
-      if is_coffee
-        compile = 'coffee -c "%s"' % file.shellify
-      elsif is_typescript
-        compile = 'tsc "%s"' % file.shellify
-      end
-    end
-    (versions||'default').split.each do |version|
-      rt_spawn *[lang, version, user, repo, path].shellify, compile||run
-    end
-  end
-
   def crud_spawn cmd = nil, opts = {}, &proc
     halt 401 unless user?
 
@@ -220,7 +199,7 @@ module SpawnHelper
     [out, err]
   end
 
-  def rt_spawn lang, version, user, repo, path, cmd
+  def rt_spawn lang, version, user, repo, path, orig_cmd
     rpc_stream :progress_bar, :show
     shell_stream '--- %s ---' % version unless lang.empty?
 
@@ -247,16 +226,22 @@ module SpawnHelper
       env.join(" && ")
     end
 
-    cmd = cache [:rt_spawn, cmd] do
+    cmd = cache [:rt_spawn, orig_cmd] do
       # if user want to uninstall some gem(s) without providing any flags,
       # adding -aIx flags to get rid of any confirmations.
       regex  = /\Agem\s+uni/
-      if cmd =~ regex
-         cmd =~ /\s+\-/ || cmd = 'gem uninstall -aIx %s' % cmd.sub(regex, '')
+      if orig_cmd =~ regex
+         orig_cmd =~ /\s+\-/ ?
+          # some args given, so returning orig_cmd
+          orig_cmd :
+          # no args given, altering orig_cmd
+          'gem uninstall -aIx %s' % orig_cmd.sub(regex, '')
       end
-      cmd
+      orig_cmd
     end
-    repo.empty? || cmd = 'cd "$HOME/repos/%s/%s" && %s' % [repo, path, cmd]
+
+    # all operations are meant to run inside repos/ folder
+    cmd = 'cd "$HOME/repos/%s/%s" && %s' % [repo, path, cmd]
 
     real_cmd = "ssh -p%s %s@%s '%s'" % [
       Cfg.remote[:port], 
@@ -269,7 +254,7 @@ module SpawnHelper
 
     timeout, error = Cfg.timeout[:interactive_shell], nil
     
-    buffer = [cmd]
+    buffer = [orig_cmd]
     begin
       Timeout.timeout timeout do
         PTY.spawn real_cmd do |r, w, pid|
@@ -294,7 +279,7 @@ module SpawnHelper
     else
       update, alert = false, nil
       something_installed, something_uninstalled, something_compiled = nil
-      e, a = cmd.strip.split(/\s+/)
+      e, a = orig_cmd.strip.split(/\s+/)
       case e
       when 'git'
         is_updated = %w[
@@ -323,6 +308,7 @@ module SpawnHelper
         something_compiled = true
       end
       if update
+        printf 'madafaka %s', user  
         clear_cache_like! [user]
         rpc_stream :update_repo_list
         rpc_stream :update_repo_fs

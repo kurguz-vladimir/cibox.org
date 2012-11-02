@@ -78,7 +78,7 @@ class Repo < E
           rpc_stream :error, e
         else
           if action = params[:after_save]
-            invoke_file action
+            invoke action
           end
           rpc_stream :alert, 'File Successfully Updated'
         end
@@ -94,6 +94,32 @@ class Repo < E
           rpc_stream(:error, e) :
           out << o
         rpc_stream :progress_bar, :hide
+      end
+    end
+
+    # do not use POST here cause this will break autorun on Mozilla browsers
+    def get_invoke action = 'run'
+      stream { invoke action }
+    end
+
+    private
+    def invoke action = 'run'
+      user, repo, lang, versions, path, file =
+        params.values_at(:user, :repo, :lang, :versions, :path, :file)
+      
+      run, compile = '%s "%s"' % [lang, file].shellify, nil
+      ext = ::File.extname(file)
+      is_coffee = ext == '.coffee'
+      is_typescript = ext == '.ts'
+      if action == 'compile' || is_coffee || is_typescript
+        if is_coffee
+          compile = 'coffee -c "%s"' % file.shellify
+        elsif is_typescript
+          compile = 'tsc "%s"' % file.shellify
+        end
+      end
+      opted_versions(lang, versions).each do |version|
+        rt_spawn *[lang, version, user, repo, path].shellify, compile||run
       end
     end
   end

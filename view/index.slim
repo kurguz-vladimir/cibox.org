@@ -39,23 +39,13 @@ input#effective-lang.hide
       - if versions.size == 0
         .tab-pane id="verselector-tab-#{lang}" Coming Soon
       - else
-
         .tab-pane id="verselector-tab-#{lang}"
-          label.checkbox.inline
-            input class="#{lang}-verselector" id="#{lang}-verselector-toggler" type="checkBox" onClick="$('.#{lang}-verselector').prop('checked',!!$('##{lang}-verselector-toggler').prop('checked')); $('#shell-prompt').focus();"
-            | All
+          .verselector-container
+            select.verselector id="verselector-#{lang}" multiple=true
+              option value='' id="verselector-#{lang}-all" All
 
-          - versions.each_pair do |v, is_default|
-            label.checkbox.inline
-              // ugly hack until Slim fixes "checked" issue.
-              // as of Slim 1.3.1 `checked=some_false_expressioon` result in checked=""
-              // which is treated as true by browser
-              - if is_default
-                input class="#{lang}-verselector" id="#{lang}-verselector-#{v}" type="checkBox" name="versions[]" value="#{v}" onClick="cibox.update_location.extend({versions: cibox.effective_lang_versions('+')}); $('#shell-prompt').focus();" checked=true
-              - else
-                input class="#{lang}-verselector" id="#{lang}-verselector-#{v}" type="checkBox" name="versions[]" value="#{v}" onClick="cibox.update_location.extend({versions: cibox.effective_lang_versions('+')}); $('#shell-prompt').focus();"
-              span.verselector-item
-                = v
+              - versions.each_pair do |v, is_default|
+                option value=v selected=is_default = v
 
   ul.nav.nav-tabs#menu-tab
     li.active
@@ -64,7 +54,7 @@ input#effective-lang.hide
 
     - @langs.each_key do |lang|
       li
-        a href="#verselector-tab-#{lang}" data-toggle="tab" onClick="cibox.switch_lang('#{lang}', cibox.effective_file_ext()); cibox.update_location.extend({versions: cibox.effective_lang_versions('+')}); $('#shell-prompt').focus();" lang=lang
+        a href="#verselector-tab-#{lang}" data-toggle="tab" onClick="cibox.switch_lang('#{lang}', cibox.effective_file_ext()); cibox.update_location.extend({versions: cibox.effective_lang_versions(true)}); $('#shell-prompt').focus();" lang=lang
           img src=("/icons/%s.png" % lang)
 
     li.dropdown
@@ -138,7 +128,7 @@ input#effective-lang.hide
         button.hide.btn.btn-small.file_reader-compile.file_reader-button onClick="cibox.save_file('#{{ Repo::File.route :save }}', 'compile');"
           i.icon-cog
           | &nbsp;Compile
-        button.btn.btn-small.file_reader-run.file_reader-button onClick="cibox.invoke_file_runner('#{{ Shell.route :file }}');"
+        button.btn.btn-small.file_reader-run.file_reader-button onClick="cibox.invoke_file_runner();"
           i.icon-play
           | &nbsp;Run
 
@@ -170,6 +160,7 @@ hr/
 script
   | $(function () {
       cibox = new CIBox('#{ @user }', '#{ @repo }', '#{{ path }}');
+      cibox.url_map.run_file = '#{{ Repo::File.route :invoke }}';
       
       var output = new EventSource('#{{ Index.route :subscribe }}/' + window.name);
       
@@ -261,9 +252,6 @@ script
             case 'download':
               $('#download').prop('src', data.call);
               break;
-            case 'run_file':
-              cibox.invoke_file_runner('#{{ Shell.route :file}}', data.call);
-              break;
             case 'redirect':
               window.location.href = data.call;
               break;
@@ -290,9 +278,6 @@ script
         cibox.scroll_shell();
       }, false);
 
-      
-      
-      
       var queryString = getQueryString();
       if ( queryString['file'] ) {
         cibox.invoke_file_reader('#{{ Repo::File.route :read }}', queryString['file'], false);
@@ -318,9 +303,8 @@ script
       repo_fs_crud_file.html('repo_fs_crud_file');
 
       $('#shell-prompt').focus().keypress( function (e) {
-        if(e.which == 13) {
+        if(e.which == 13)
           cibox.invoke_shell('#{Shell.route :invoke}');
-        }
       });
 
       $('a[data-toggle="tab"]').on('shown', function (e) {
@@ -339,21 +323,33 @@ script
       if (effectiveLang) {
         var opted_versions = ( _ = queryString['versions']||'' ).length > 0 ? _.split('+') : [];
         if (opted_versions.length > 0) {
-          $('.' + effectiveLang + '-verselector').each( function() {
-            $(this).attr('checked', jQuery.inArray($(this).attr('value'), opted_versions) >= 0);
+          var target_selector = '#verselector-' + effectiveLang;
+          $( target_selector + ' option:selected' ).removeAttr('selected');
+          $( target_selector + ' > option' ).each( function() {
+            $(this).attr('selected', jQuery.inArray($(this).attr('value'), opted_versions) >= 0);
           });
         }
       }
+      verselector_options = { closeOnSelect: false, placeholder: "All versions selected" }
+      $('.verselector').select2( verselector_options ).click(function(e) {
+          var selected = $(e.target).val() || [];
+          var target_selector = '#' + $(e.target).attr('id');
+          if(jQuery.inArray('', selected) >= 0){
+            $( target_selector + ' option:selected' ).removeAttr('selected');
+            $( target_selector ).select2( verselector_options );
+            selected = [];
+          }
+          cibox.update_location.extend({versions: selected.length > 0 ? selected.join('+') : '*' });
+          $('#shell-prompt').focus();
+      });
     
       // both triggers should go only after versions was set
 
-      if ( queryString['run'] ) {
-        cibox.invoke_file_runner('#{{Shell.route :file}}', queryString['file']);
-      }
+      if ( queryString['run'] )
+        cibox.invoke_file_runner(queryString['file']);
 
-      if ( queryString['procedure_id'] ) {
+      if ( queryString['procedure_id'] )
         cibox.invoke_procedure('#{{Procedure.route :invoke}}', queryString['procedure_id'], false);
-      }
 
       cibox.update_procedures_list('#{{ Procedure.route :dropdown }}');
       cibox.update_repo_list('#{{ Repo.route :dropdown }}');
