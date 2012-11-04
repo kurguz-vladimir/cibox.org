@@ -1,4 +1,7 @@
 *conf.yml
-var/*
-tmp/*
+var/db
+var/downloads
+var/log
+var/run
+tmp
 push
