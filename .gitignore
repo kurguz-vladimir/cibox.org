@@ -1,7 +1,4 @@
 *conf.yml
-var/db
-var/downloads
-var/log
-var/run
+var
 tmp
 push
