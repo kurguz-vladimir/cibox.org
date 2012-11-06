@@ -117,7 +117,7 @@ class Repo < E
     def invoke action = 'run'
       user, repo, lang, versions, path, file =
         params.values_at(:user, :repo, :lang, :versions, :path, :file)
-      
+      return unless file
       run, compile = '%s "%s"' % [lang, file].shellify, nil
       ext = ::File.extname(file)
       is_coffee = ext == '.coffee'

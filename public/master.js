@@ -276,8 +276,9 @@ CIBox = function(user, repo, path){
 
   this.sanitize_output = function(str) {
     if(!str) return '';
-    return str.replace(/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]/g, '').
-      replace(/[^\w|\d|\n|.|-]/g,function (chr) { return '&#' + chr.charCodeAt(0) + ';'; });
+    return str.replace(/[^\w|\d|\n|.|-]/g, function (chr) {
+      return '&#' + chr.charCodeAt(0) + ';'; 
+    });
   }
 
   this.show_progress_bar = function () {

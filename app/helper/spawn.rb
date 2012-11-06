@@ -201,7 +201,7 @@ module SpawnHelper
 
   def rt_spawn lang, version, user, repo, path, orig_cmd
     rpc_stream :progress_bar, :show
-    shell_stream escape_path("--- %s ---\n" % version) unless lang.empty?
+    shell_stream escape_path("--- %s ---\n\n" % version) unless lang.empty?
 
     # string operations are expensive enough, so doing some cache
     remote_env = cache [:rt_spawn, lang, version] do
@@ -318,6 +318,7 @@ module SpawnHelper
       rpc_stream :alert, alert if alert
     end
     rpc_stream :progress_bar, :hide
+    rpc_stream :cleanup_shell
   end
 
   def admin_spawn cmd, tty = nil
