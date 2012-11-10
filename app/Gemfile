@@ -2,7 +2,7 @@ source :rubygems
 
 gem 'thin'
 gem 'slim' # ever put slim before espresso
-gem 'e'
+gem 'e', '>= 0.2.9'
 gem 'specular'
 gem 'sonar'
 gem 'json'

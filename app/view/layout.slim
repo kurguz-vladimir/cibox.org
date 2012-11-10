@@ -1,28 +1,30 @@
 doctype 5
 head
+  - assets = assets_loader do
+    - cd :vendor
+    - js 'jquery'
+    - js 'jquery.cookie'
+    
+    - cd  :bootstrap
+    - js  'js/bootstrap.min'
+    - css 'css/bootstrap.min'
+    - css 'css/bootstrap-responsive.min'
   
-  == load_assets  'jquery.js', \
-                  'jquery.cookie.js', \
-                  :from => 'vendor/'
-  
-  == load_assets  'js/bootstrap.min.js', \
-                  'css/bootstrap.min.css', \
-                  'css/bootstrap-responsive.min.css', \
-                  :from => 'vendor/bootstrap/'
-  
-  == load_assets  'js/bootstrap-notify.js', \
-                  'css/bootstrap-notify.css', \
-                  'css/styles/alert-bangtidy.css', \
-                  :from => 'vendor/bootstrap-notify/'
-  
-  == load_assets  'select2.min.js', \
-                  'select2.css', \
-                  :from => 'vendor/select2/'
+    - cd  '../bootstrap-notify'
+    - js  'js/bootstrap-notify'
+    - css 'css/bootstrap-notify'
+    
+    - cd  '../select2'
+    - js  'select2.min'
+    - css 'select2'
 
-  == load_assets  'e-crudify-bootstrap.js', \
-                  'mime.js', \
-                  'master.js', \
-                  'master.css'
+    - cd
+    - js  'e-crudify-bootstrap'
+    - js  'mime'
+    - js  'master'
+    - css 'master'
+  
+  == assets
 
   title CIBox.org - a Code Sharing and Continuous Integration Service
 
@@ -54,13 +56,14 @@ body
           a href="https://github.com/slivu/cibox.org/pulls"  https://github.com/slivu/cibox.org/pulls
           br/
           | IRC: #cibox channel on irc.freenode.net
-          
+
         .span.pull-right
+          | <a href="http://flattr.com/thing/927608/Code-Sharing-and-Continuous-Integration-Service" target="_blank">
+          | <img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" style="margin-top: 5px;" /></a>
+          br/
+          br/
           | Powered by
-          a href="https://github.com/slivu/espresso" &nbsp;Espresso
-          p
-            | <a href="http://flattr.com/thing/927608/Code-Sharing-and-Continuous-Integration-Service" target="_blank">
-            | <img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" style="margin-top: 5px;" /></a>
+          a href="http://e.github.com" &nbsp;Espresso Framework
 
   .notifications.top-right
   

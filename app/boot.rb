@@ -94,15 +94,19 @@ App.setup_controllers do |ctrl|
     error 404 do |msg|
       render_l :layout do
         "<h2>Well, sometimes is happening ...</h2>
-         <h3>The page you are looking for is not here</h3>%s
-         <h4>404: Not Found</h4>%s" % [msg, path]
+         <h3>The page you are looking for is not here</h3>
+         <strong>%s</strong>
+         <p>%s</p>" % [msg, path].map { |s| escape_html(s.to_s) }
       end
     end
 
     error 500 do |msg|
       render_l :layout do
         "<h2>Something weird happened ...</h2>
-         <h3>Please try again later</h3>%s" % msg
+         <h4>Please report this issue at <a href='https://github.com/slivu/cibox.org/issues'>
+         github.com/slivu/cibox.org/issues</a><br/>
+         Thank you</h4>
+         <p>%s</p>" % escape_html(msg.to_s)
       end
     end
   end

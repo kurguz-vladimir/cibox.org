@@ -99,9 +99,11 @@ hr/
             a href=img
               img src=img style="width: 320px; height: 240px;"
 
-    == load_assets  'js/jquery.lightbox.js',
-                    'css/jquery.lightbox.css',
-                    from: 'vendor/jquery-lightbox/' 
+    - assets_loader do
+      - cd   'vendor/jquery-lightbox/' 
+      == js  'js/jquery.lightbox'
+      == css 'css/jquery.lightbox'
+
     script
       | $(function() {
           $('#gallery a').lightBox();
