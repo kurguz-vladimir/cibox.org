@@ -57,15 +57,21 @@ class Repo < E
       @repo_fs = cache([user, :repo_fs, repo]) do
         o, e   = spawn repo_fs_cmd(repo), user: user
         if e
-          nil # do not cache anything on errors
+          nil # do not cache on failures
         else
-          if (fs = YAML.load(o) rescue nil).is_a?(Hash)
-            fs.inject({}) do |f,c|
-              f.update c.first => {
-                folders: Hash[((c.last||{})[:folders] || {}).sort_by {|e| (e.last||{})[:name]||''}],
-                files:   Hash[((c.last||{})[:files]   || {}).sort_by {|e| (e.last||{})[:name]||''}],
-              }
+          begin
+            if (fs = YAML.load(o)).is_a?(Hash)
+              fs.inject({}) do |f,c|
+                f.update c.first => {
+                  folders: Hash[((c.last||{})[:folders] || {}).sort_by {|e| (e.last||{})[:name]||''}],
+                  files:   Hash[((c.last||{})[:files]   || {}).sort_by {|e| (e.last||{})[:name]||''}],
+                }
+              end
             end
+          rescue Psych::SyntaxError => e
+            nil # do not cache on failures
+          rescue => e
+            nil # do not cache on failures
           end
         end
       end
@@ -98,9 +104,11 @@ class Repo < E
     end
 
     def post_read user, repo
+      return unless file = params[:file]
+      file = unescape(file)
       stream do |out|
         rpc_stream :progress_bar, :show
-        o, e = spawn read_file_cmd(params[:file], repo, params[:path]), user: user
+        o, e = spawn read_file_cmd(file, repo, params[:path]), user: user
         e ?
           rpc_stream(:error, e) :
           out << o
@@ -118,6 +126,7 @@ class Repo < E
       user, repo, lang, versions, path, file =
         params.values_at(:user, :repo, :lang, :versions, :path, :file)
       return unless file
+      file = unescape(file)
       run, compile = '%s "%s"' % [lang, file].shellify, nil
       ext = ::File.extname(file)
       is_coffee = ext == '.coffee'

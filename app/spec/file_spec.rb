@@ -31,7 +31,6 @@ Spec.new :FileSpec do
   Should 'rename file' do
     out, err = spawn rename_file_cmd(file, new_name, repo), user: test_user
     o.error(err) if err
-    p repo_fs(repo)
     files = repo_fs(repo)['.'][:files].keys rescue {}
     does(files).include? new_name
     refute(files).include? file

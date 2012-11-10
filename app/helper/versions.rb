@@ -4,7 +4,7 @@ module VersionsHelper
     cache([:langs, lang]) do
       o, e = spawn lang_versions_cmd(lang), user: :admin
       if e
-        p e
+        puts "error getting lang versions! lang: %s, params: %s, user: %s" % [lang, params, user]
         nil # cache nothing on failures
       else
         versions = o.split(/\r?\n/).map { |v| v.strip } rescue nil

@@ -2,6 +2,10 @@ class User < E
 
   include SpawnHelper
 
+  setup /ssh/ do
+    before { halt 401 unless user? }
+  end
+
   def index
     user ? redirect(Index, user) : render
   end
@@ -97,21 +101,6 @@ class User < E
           body << 'Unknown error occurred. Please try again later.'
         end
       end
-    end
-  end
-
-  def delete
-    halt 401 unless user?
-    stream do |out|
-      o, e = admin_spawn delete_user_cmd(user)
-      if e
-        str = e
-      else
-        clear_cache! :users
-        session.delete :auth_session
-        str = 'Account Successfully Deleted'
-      end
-      out << render_l { str }
     end
   end
 

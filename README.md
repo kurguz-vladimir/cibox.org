@@ -21,7 +21,7 @@ on any version of your Kung Fu language
 Yes, that's offered by any CI service.
 
 The only difference - 
-you can manually control everything.
+you can manually control everything in Real Time!
 
 Just as you do on your computer.
 

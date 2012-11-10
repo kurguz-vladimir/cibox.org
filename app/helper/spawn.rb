@@ -201,31 +201,11 @@ module SpawnHelper
 
   def rt_spawn lang, version, user, repo, path, orig_cmd
     rpc_stream :progress_bar, :show
-    shell_stream escape_path("--- %s ---\n\n" % version) unless lang.empty?
+    shell_stream escape_path("--- %s ---\n" % version) unless lang.empty?
 
     # string operations are expensive enough, so doing some cache
-    remote_env = cache [:rt_spawn, lang, version] do
-      env = []
-      if lang == 'ruby'
-        regex = /\-(\d+)mode\Z/
-        if mode = version.scan(regex).flatten.first
-          if version =~ /jruby/i
-            env << 'export JRUBY_OPTS="--%s $JRUBY_OPTS"' % mode.split('').join('.')
-          elsif version =~ /rbx\-2/i
-            env << 'export RBXOPT="-X%s $RBXOPT"' % mode
-          end
-          version = version.sub(regex, '')
-        end
-      end
-
-      langs_path = lang.empty? ?
-        SUPPORTED_LANGS.map { |l| Cfg.remote[:langs_path] % [l, :default] }.join(':') :
-        Cfg.remote[:langs_path] % [lang, version]
-      
-      env << 'export PATH="%s:$PATH"' % langs_path
-      env.join(" && ")
-    end
-
+    setenv = 'export CIBOX_LANG="%s" && export CIBOX_LANG_VERSION="%s" && source $HOME/.ciboxrc' % [lang, version]
+    
     cmd = cache [:rt_spawn, orig_cmd] do
       # if user want to uninstall some gem(s) without providing any flags,
       # adding -aIx flags to get rid of any confirmations.
@@ -240,14 +220,11 @@ module SpawnHelper
       orig_cmd
     end
 
-    # all operations are meant to run inside repos/ folder
-    cmd = 'cd "$HOME/repos/%s/%s" && %s' % [repo, path, cmd]
-
     real_cmd = "ssh -p%s %s@%s '%s'" % [
       Cfg.remote[:port], 
       user, 
       Cfg.remote[:host], 
-      remote_env + ' && ' + cmd
+      setenv + ' && cd "$HOME/repos/%s/%s" && %s' % [repo, path, cmd]
     ]
 
     puts real_cmd if Cfg.dev?
@@ -259,7 +236,9 @@ module SpawnHelper
         PTY.spawn real_cmd do |r, w, pid|
           begin
             r.sync
-            r.each_char { |c| shell_stream escape_path(c) }
+            r.each_char do |char|
+              shell_stream escape_path(char)
+            end
           rescue Errno::EIO => e
             # simply ignoring this
           ensure
@@ -307,7 +286,6 @@ module SpawnHelper
         something_compiled = true
       end
       if update
-        printf 'madafaka %s', user  
         clear_cache_like! [user]
         rpc_stream :update_repo_list
         rpc_stream :update_repo_fs
@@ -318,7 +296,6 @@ module SpawnHelper
       rpc_stream :alert, alert if alert
     end
     rpc_stream :progress_bar, :hide
-    rpc_stream :cleanup_shell
   end
 
   def admin_spawn cmd, tty = nil

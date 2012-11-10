@@ -8,28 +8,34 @@
   li.divider
 
 - @repos.each do |repo|
-  li.span5
+  li.span5 style="margin-bottom: 5px;"
     a href=Index.route(@user, repo)
       i.icon-play
       | &nbsp;
-      = repo
+      strong
+        = repo
     
     - if owner
       .span
         a href="#" onClick="repos_crudifier.update(true, {user: '#{@user}', repo: '#{repo}'});"
-          i.icon-edit
-          | Edit
+          .span.muted
+            i.icon-edit
+            | Edit
+
     - if user?
       - unless owner
         .span
           a href="#" onClick="cibox.fork_repo('#{{Repo.route :fork, repo, @user}}');"
-            i.icon-share-alt
-            | Fork
+            .span.muted
+              i.icon-share-alt
+              | Fork
     .span
       a href="#" onClick="cibox.download_repo('#{{Repo.route :download, @user, repo, 'zip'}}');"
-        i.icon-download
-        | .zip
+        .span.muted
+          i.icon-download
+          | .zip
     .span
       a href="#" onClick="cibox.download_repo('#{{Repo.route :download, @user, repo, 'tar.gz'}}');"
-        i.icon-download
-        | .tar.gz
+        .span.muted
+          i.icon-download
+          | .tar.gz

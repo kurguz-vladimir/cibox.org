@@ -21,6 +21,10 @@ class Cfg
       end
     end
 
+    def pids_path
+      Cfg.var_path / 'run/'
+    end
+
     def set_env env = nil
       @env  = env || (::File.directory?('/somebit') ? :dev : :prod)
       @dev  = @env == :dev

@@ -20,6 +20,7 @@ input#effective-lang.hide
         strong #{@user}
         |'s account
 
+
     .pull-right
       span.muted
         | Tired to work in browser?
@@ -242,10 +243,6 @@ script
               data.call == 'show' ?
                 cibox.show_progress_bar():
                 cibox.hide_progress_bar();
-              break;
-            case 'cleanup_shell':
-              $('#shell-output').html( $('#shell-output').text().replace(/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]/g, '') );
-              cibox.scroll_shell();
               break;
             case 'update_repo_list':
               cibox.update_repo_list('#{{ Repo.route :dropdown }}');
