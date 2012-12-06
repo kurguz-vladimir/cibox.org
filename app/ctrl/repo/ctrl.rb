@@ -11,34 +11,30 @@ class Repo < E
   end
 
   def post_fork repo, owner
-    stream do
-      rpc_stream :progress_bar, :show
-      o, e = admin_spawn fork_repo_cmd(repo, owner)
-      if e
-        rpc_stream :error, e
-      else
-        rpc_stream :alert, 'Repo successfully forked. See it in your account.'
-        clear_cache! [user, :repo_list]
-      end
-      rpc_stream :progress_bar, :hide
+    rpc_stream :progress_bar, :show
+    o, e = admin_spawn fork_repo_cmd(repo, owner)
+    if e
+      rpc_stream :error, e
+    else
+      rpc_stream :alert, 'Repo successfully forked. See it in your account.'
+      clear_cache! [user, :repo_list]
     end
+    rpc_stream :progress_bar, :hide
   end
 
   def download user, repo, format
-    stream do
-      rpc_stream :progress_bar, :show
-      o, e = spawn archive_repo_cmd(repo, user), user: user
-      if e
-        rpc_stream(:error, e)
-      else
-        dst = Cfg.var_path / :downloads / user
-        FileUtils.mkdir_p dst
-        o, e = spawn cmd: download_repo_cmd(user, repo, format, dst)
-        e ? rpc_stream(:error, e) :
-          rpc_stream(:download, '/downloads/%s/%s.%s' % [user, repo, format])
-      end
-      rpc_stream :progress_bar, :hide
+    rpc_stream :progress_bar, :show
+    o, e = spawn archive_repo_cmd(repo, user), user: user
+    if e
+      rpc_stream(:error, e)
+    else
+      dst = Cfg.var_path / :downloads / user
+      FileUtils.mkdir_p dst
+      o, e = spawn cmd: download_repo_cmd(user, repo, format, dst)
+      e ? rpc_stream(:error, e) :
+        rpc_stream(:download, '/downloads/%s/%s.%s' % [user, repo, format])
     end
+    rpc_stream :progress_bar, :hide
   end
 
   def dropdown user, repo = nil
@@ -49,76 +45,73 @@ class Repo < E
   def fs user, repo = nil
     return unless repo
     halt 404 unless @repos.include?(repo)
-    stream do |out|
 
-      rpc_stream :progress_bar, :show
-      @user, @repo = user, repo
-    
-      @repo_fs = cache([user, :repo_fs, repo]) do
-        o, e   = spawn repo_fs_cmd(repo), user: user
-        if e
-          nil # do not cache on failures
-        else
-          begin
-            if (fs = YAML.load(o)).is_a?(Hash)
-              fs.inject({}) do |f,c|
-                f.update c.first => {
-                  folders: Hash[((c.last||{})[:folders] || {}).sort_by {|e| (e.last||{})[:name]||''}],
-                  files:   Hash[((c.last||{})[:files]   || {}).sort_by {|e| (e.last||{})[:name]||''}],
-                }
-              end
+    rpc_stream :progress_bar, :show
+    @user, @repo = user, repo
+  
+    @repo_fs = cache([user, :repo_fs, repo]) do
+      o, e   = spawn repo_fs_cmd(repo), user: user
+      if e
+        nil # do not cache on failures
+      else
+        begin
+          if (fs = YAML.load(o)).is_a?(Hash)
+            fs.inject({}) do |f,c|
+              f.update c.first => {
+                folders: Hash[((c.last||{})[:folders] || {}).sort_by {|e| (e.last||{})[:name]||''}],
+                files:   Hash[((c.last||{})[:files]   || {}).sort_by {|e| (e.last||{})[:name]||''}],
+              }
             end
-          rescue Psych::SyntaxError => e
-            nil # do not cache on failures
-          rescue => e
-            nil # do not cache on failures
           end
+        rescue Psych::SyntaxError => e
+          nil # do not cache on failures
+        rescue => e
+          nil # do not cache on failures
         end
       end
-      @repo_fs ||= {}
-      
-      out << render_p
-      rpc_stream :progress_bar, :hide
     end
+    @repo_fs ||= {}
+    
+    rpc_stream :progress_bar, :hide
+    render_p
   end
 
   class File < E
     map Repo.base_url / :file
 
     def post_save
-      stream do
-        rpc_stream :progress_bar, :show
-        o, e = spawn do
-          upload_file_cmd *params.values_at(:file, :content, :repo, :path)
-        end
-        if e 
-          rpc_stream :error, e
-        else
-          if action = params[:after_save]
-            invoke action
-          end
-          rpc_stream :alert, 'File Successfully Updated'
-        end
-        rpc_stream :progress_bar, :hide
+      rpc_stream :progress_bar, :show
+      o, e = spawn do
+        upload_file_cmd *params.values_at(:file, :content, :repo, :path)
       end
+      if e 
+        rpc_stream :error, e
+      else
+        if action = params[:after_save]
+          invoke action
+        end
+        rpc_stream :alert, 'File Successfully Updated'
+      end
+      rpc_stream :progress_bar, :hide
     end
 
     def post_read user, repo
       return unless file = params[:file]
       file = unescape(file)
-      stream do |out|
-        rpc_stream :progress_bar, :show
-        o, e = spawn read_file_cmd(file, repo, params[:path]), user: user
-        e ?
-          rpc_stream(:error, e) :
-          out << o
-        rpc_stream :progress_bar, :hide
+      
+      rpc_stream :progress_bar, :show
+      o, e = spawn read_file_cmd(file, repo, params[:path]), user: user
+      rpc_stream :progress_bar, :hide
+      if e
+        rpc_stream(:error, e)
+        halt
       end
+      o
     end
 
     # do not use POST here cause this will break autorun on Mozilla browsers
     def get_invoke action = 'run'
-      stream { invoke action }
+      invoke action
     end
 
     private

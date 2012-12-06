@@ -37,15 +37,9 @@ class Index < E
   end
 
   def subscribe uuid
-    content_type!  'text/event-stream'
-    # disabling explicit charset cause this breaks EventSource on older chrome
-    # see http://code.google.com/p/chromium/issues/detail?id=66666 for details
-    # charset!       'UTF-8'
-    cache_control! 'No-Cache'
-
-    stream :keep_open do |out|
-      output_streams[uuid] = out
-      out.callback { output_streams.delete uuid }
+    event_stream do |stream|
+      output_streams[uuid] = stream
+      stream.on_error { output_streams.delete uuid }
     end
   end
 

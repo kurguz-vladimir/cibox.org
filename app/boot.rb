@@ -17,18 +17,6 @@ require 'ext/array'
 require 'conf/conf'
 require 'conf/db'
 
-if opted_env = $*[0]
-  puts
-  puts "Explicitly setting Env to #{opted_env}"
-  puts
-  Cfg.env = opted_env
-end
-
-# Registering Slim engine with Tilt.
-# This should be done before controllers loaded
-# otherwise will have to use `engine_ext` to explicitly define templates extension
-Tilt::SlimTemplate = Slim::Template
-
 # loading helpers
 Dir[Cfg.helper_path / '**/*.rb'].each { |f| require f }
 
@@ -39,7 +27,8 @@ DataMapper.finalize
 # loading controllers
 %w[ctrl crud].each   { |f| Dir[Cfg.ctrl_path  / '**/%s.rb' % f].each { |f| require f } }
 
-SUPPORTED_LANGS = %w[ruby node python php]
+SUPPORTED_LANGS = %w[ruby node python php].freeze
+OUTPUT_STREAMS  = Hash.new
 
 # building app
 App = EApp.new :automount do
@@ -47,7 +36,7 @@ App = EApp.new :automount do
   session :memory
   assets_url :/
   pids do
-    Dir[Cfg.app_path / 'tmp/pids/*.pid'].map { |f| File.read f }
+    Dir[Cfg.var_path / 'run/*.pid'].map { |f| File.read f }
   end
   cache_pool Hash.new
 
@@ -77,17 +66,16 @@ App.setup_controllers do |ctrl|
   # any controller(well, almost) need to output something
   attr_reader :auth_session, :output_streams, :output_stream
 
-  # this hook should run before any action in all controllers.
+  # this hook should run before any action of any controller.
   # also it should run before any other hooks in any controller
-  # cause many controllers rely on env['REMOTE_USER'] and output_streams.
-  # priority option will ensure it is called first in the hooks chain.
+  # cause many controllers rely on env['REMOTE_USER'] and :output_streams.
+  # :priority option will ensure it is called first in the hooks chain.
   # just make sure other hooks has lower priority.
   before priority: 1000 do
     @auth_session      = session[:auth_session] ||= {}
     env['REMOTE_USER'] = auth_session[:user?]
-
-    @output_streams = session[:output_streams] ||= {}
-    @output_stream  = output_streams[params[:__stream_uuid__]] || []
+    @output_streams    = OUTPUT_STREAMS
+    @output_stream     = OUTPUT_STREAMS[params[:__stream_uuid__]]
   end
 
   if Cfg.prod?
@@ -113,5 +101,4 @@ App.setup_controllers do |ctrl|
 
   engine :Slim, :pretty => Cfg.dev?
   layout :layout
-
 end

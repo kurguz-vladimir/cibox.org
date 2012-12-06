@@ -276,7 +276,7 @@ CIBox = function(user, repo, path){
 
   this.sanitize_output = function(str) {
     if(!str) return '';
-    return str.replace(/[^\w|\d|\n|.|-]/g, function (chr) {
+    return str.replace(/[^\w|\d|\n|\s|.|-]/g, function (chr) {
       return '&#' + chr.charCodeAt(0) + ';'; 
     });
   }

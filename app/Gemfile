@@ -1,8 +1,9 @@
 source :rubygems
 
-gem 'thin'
 gem 'slim' # ever put slim before espresso
-gem 'e', '>= 0.2.9'
+gem 'appetite', git: 'git://github.com/slivu/appetite.git'
+gem 'e', git: 'git://github.com/slivu/espresso.git'
+gem 'reel', git: 'git://github.com/celluloid/reel.git'
 gem 'specular'
 gem 'sonar'
 gem 'json'
@@ -11,3 +12,4 @@ gem 'rest-client'
 gem 'data_mapper'
 gem 'dm-sqlite-adapter'
 gem 'posix-spawn'
+gem 'bluepill'

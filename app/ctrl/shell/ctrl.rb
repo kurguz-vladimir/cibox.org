@@ -5,12 +5,10 @@ class Shell < E
   end
 
   def post_invoke
-    stream do
-      repo, lang, versions, path, cmd =
-        params.values_at(:repo, :lang, :versions, :path, :cmd)
-      opted_versions(lang, versions).each do |version|
-        rt_spawn *[lang, version, user, repo, path, cmd].shellify
-      end
+    repo, lang, versions, path, cmd =
+      params.values_at(:repo, :lang, :versions, :path, :cmd)
+    opted_versions(lang, versions).each do |version|
+      rt_spawn *[lang, version, user, repo, path, cmd].shellify
     end
   end
 

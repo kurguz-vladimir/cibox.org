@@ -15,7 +15,8 @@ hr/
 - (@keys||'').split("\n").each do |key|
   p
     a href="#" onClick="cibox.remove_ssh_key('#{User.route :ssh_key}', '#{key}');"
-      i.icon-remove
+      i.icon-trash
+    | &nbsp;
     = key
 
 .errors-container.hide

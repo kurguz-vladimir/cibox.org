@@ -137,21 +137,20 @@ module SpawnHelper
     halt 401 unless user?
 
     opts = cmd if cmd.is_a?(Hash)
-    stream do
-      rpc_stream :progress_bar, :show
-      o, e = spawn cmd, opts, &proc
-      if e
-        rpc_stream :error, e
-      else
-        clear_cache! [user, :repo_list]
-        clear_cache! [user, :repo_fs, params[:repo]]
+    
+    rpc_stream :progress_bar, :show
+    o, e = spawn cmd, opts, &proc
+    if e
+      rpc_stream :error, e
+    else
+      clear_cache! [user, :repo_list]
+      clear_cache! [user, :repo_fs, params[:repo]]
 
-        data = opts.merge(stdout: o, params: params)
-        crud_stream data
-        rpc_stream :alert, 'Done'
-      end
-      rpc_stream :progress_bar, :hide
+      data = opts.merge(stdout: o, params: params)
+      crud_stream data
+      rpc_stream :alert, 'Done'
     end
+    rpc_stream :progress_bar, :hide
   end
 
   def spawn *cmd_and_or_opts
